@@ -211,7 +211,7 @@
                         </th>
 
                         <th
-                            v-for="column in columns"
+                            v-for="column in displayedColumns"
                             :key="column.name"
                             :class="{
                                 'cursor-pointer': column.options?.sort
@@ -281,7 +281,7 @@
                         </td>
 
                         <td
-                            v-for="column in columns"
+                            v-for="column in displayedColumns"
                             :key="column.name"
                         >
 
@@ -461,6 +461,16 @@ const effectiveColumns = computed(() =>
     (props.selectable ? 1 : 0)
 );
 
+const visibleColumns = ref<string[]>(
+    props.columns.map(x => x.name)
+);
+
+const displayedColumns = computed(() =>
+    props.columns.filter(
+        x => visibleColumns.value.includes(x.name)
+    )
+);
+
 function getValue(
     obj: Record<string, any>,
     path: string
@@ -498,7 +508,7 @@ function onFilterInput(
 }
 
 function toggleSort(
-    column: DataTableColumn
+    column: any
 ) {
     if (!column.options?.sort)
         return;
