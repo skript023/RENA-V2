@@ -404,6 +404,9 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
+    (e: 'add'): void;
+    (e: 'export'): void;
+    (e: 'refresh'): void;
     (e: 'update:search', value: string): void;
 
     (e: 'filter', payload: {

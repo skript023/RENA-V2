@@ -12,30 +12,14 @@
             :search="search"
             row-key="_id"
             @update:search="search = $event"
+            @add="createTask"
+            @export="exportExcel"
             @filter="onFilter"
             @sort="onSort"
             @selection-change="selectedRows = $event"
             @next="next"
             @prev="prev"
         >
-
-            <template #toolbar>
-
-                <button
-                    class="btn btn-primary"
-                    @click="createTask"
-                >
-                    Add Task
-                </button>
-
-                <button
-                    class="btn btn-success"
-                    @click="exportExcel"
-                >
-                    Export Excel
-                </button>
-
-            </template>
 
             <template #cell-user.fullname="{ row }">
 
