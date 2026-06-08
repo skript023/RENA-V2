@@ -1,0 +1,74 @@
+name: Deploy Vue App To Node04
+on:
+  # push:
+  #   branches:
+  #     - main
+  workflow_dispatch:
+jobs:
+  build-and-deploy-node04:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Clean install
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: Write production .env file
+        run: |
+          echo "VITE_ENVIRONMENT=prod" >> .env
+          echo "VITE_HOST_PROD=https://nodex4.ytzyar.cc" >> .env
+          echo "VITE_HOST_DEV=http://localhost:8080" >> .env
+          echo "VITE_HOST_PHP_PROD=https://ytzyar.cc" >> .env
+          echo "VITE_HOST_PHP_DEV=http://localhost:8083" >> .env
+          echo "VITE_SEC=89" >> .env
+          echo "VITE_ENCRPYPT_KEY=GOTTVERGESSEN123" >> .env
+          echo "VITE_INITIALIZATION_VECTOR=123GOTTVERGESSEN" >> .env
+          echo "VITE_API_KEY=${{ secrets.API_KEY }}" >> .env
+
+      - name: Build Vue app
+        run: npm run build
+
+      - name: Upload dist to server via SCP with password
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          port: 22
+          source: ./dist/*
+          target: /var/www/downloader/frontend
+      - name: Check for nginx in sites-enabled
+        id: check_nginx_conf
+        uses: appleboy/ssh-action@master
+        with:
+            host: ${{ secrets.SERVER_HOST }}
+            username: ${{ secrets.SERVER_USER }}
+            password: ${{ secrets.SERVER_PASSWORD }}
+            port: 22
+            script: |
+                if [ -f "/etc/nginx/sites-enabled/vue.conf" ]; then
+                  echo "node02.conf exists in sites-enabled."
+                  echo "::set-output name=exists::true"
+                else
+                  echo "node02.conf does not exist in sites-enabled."
+                  echo "::set-output name=exists::false"
+                fi
+      - name: Run setup.sh if node02.conf does not exist
+        if: steps.check_nginx_conf.outputs.exists == 'false'
+        uses: appleboy/ssh-action@master
+        with:
+            host: ${{ secrets.SERVER_HOST }}
+            username: ${{ secrets.SERVER_USER }}
+            password: ${{ secrets.SERVER_PASSWORD }}
+            port: 22
+            script: |
+              sudo /var/www/downloader/backend/setup.sh

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1/src/regular/style.css"
+    />
+    <script>
+      try {
+        const savedTheme = localStorage.getItem('theme');
+
+        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        const theme = savedTheme || (systemDark ? 'dark' : 'light');
+
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+      } catch(e) {}
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
