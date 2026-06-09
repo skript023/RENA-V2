@@ -474,10 +474,7 @@ const displayedColumns = computed(() =>
     )
 );
 
-function getValue(
-    obj: Record<string, any>,
-    path: string
-) {
+function getValue(obj: Record<string, any>, path: string): any {
     return path
         .split('.')
         .reduce(
