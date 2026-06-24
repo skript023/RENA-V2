@@ -34,7 +34,7 @@
                                 name="username" 
                                 placeholder="username" 
                                 class="input input-bordered w-full pl-10 bg-base-200 text-base-content placeholder:text-base-content/50 focus:outline-none focus:ring-2 focus:ring-primary" 
-                                v-model="credential.identity"
+                                v-model="credential.username"
                                 required>
                         </div>
                     </div>
@@ -141,7 +141,7 @@ export default {
         return {
             loading: false,
             theme: 'light', // Default theme
-            credential: {} as { identity: string; password: string; }
+            credential: {} as { username: string; password: string; }
         };
     },
     methods: {

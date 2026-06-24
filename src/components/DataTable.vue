@@ -243,9 +243,9 @@
                             <div class="space-y-2 py-4">
 
                                 <div
-                                    v-for="i in 8"
+                                    v-for="i in 10"
                                     :key="i"
-                                    class="skeleton h-10 w-full"
+                                    class="skeleton h-12 w-full"
                                 />
 
                             </div>
@@ -264,7 +264,7 @@
                         </td>
                     </tr>
 
-                    <tr
+                    <tr v-if="!loading"
                         v-for="row in items"
                         :key="getValue(row, rowKey)"
                     >

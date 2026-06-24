@@ -1,5 +1,6 @@
 import { http, type ServerResponse } from "@/util/http";
 import type Task from "./dto/activity.dto";
+import authentication from "@/stores/authentication";
 
 export default class activity
 {
@@ -10,7 +11,8 @@ export default class activity
             const response = await http.post('activity', { 
                 body: JSON.stringify(task),
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
                 }
             });
 
@@ -27,7 +29,8 @@ export default class activity
         {
             const response = await http.get('tasks', { 
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
                 },
                 params: { page, limit, ...(search && { search }), sortDirection }
             });
