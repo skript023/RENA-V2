@@ -21,14 +21,15 @@ export default class activity
             return error.response.data;
         }
     }
-    static async load(): Promise<ServerResponse<Task[]>>
+    static async load(page: number = 1, limit: number = 5, sortDirection: 'asc' | 'desc' = 'asc', search?: string): Promise<ServerResponse<Task[]>>
     {
         try 
         {
-            const response = await http.get('activity', { 
+            const response = await http.get('tasks', { 
                 headers: {
                     "Content-Type": "application/json"
-                }
+                },
+                params: { page, limit, ...(search && { search }), sortDirection }
             });
 
             return response.data;

@@ -10,7 +10,7 @@
             :total="total"
             :loading="loading"
             :search="search"
-            row-key="_id"
+            row-key="id"
             @update:search="search = $event"
             @add="createTask"
             @export="exportExcel"
@@ -19,6 +19,10 @@
             @selection-change="selectedRows = $event"
             @next="next"
             @prev="prev"
+            @first="first"
+            @last="last"
+
+            @goto="goto"
         >
 
             <template #cell-user.fullname="{ row }">
@@ -88,11 +92,11 @@ const selectedRows = ref<any[]>([]);
 const filters = ref<Record<string, string>>({});
 
 const sortColumn = ref('');
-const sortDirection = ref<'asc' | 'desc'>('asc');
+const sortDirection = ref<'asc' | 'desc'>('desc');
 
 const columns = [
     {
-        name: 'user.fullname',
+        name: 'user.lastname',
         label: 'User',
         options: {
             filter: true,
@@ -100,8 +104,16 @@ const columns = [
         }
     },
     {
-        name: 'name',
-        label: 'Task',
+        name: 'title',
+        label: 'Title',
+        options: {
+            filter: true,
+            sort: true
+        }
+    },
+    {
+        name: 'description',
+        label: 'Description',
         options: {
             filter: true,
             sort: true
@@ -124,7 +136,7 @@ const columns = [
         }
     },
     {
-        name: 'end_date',
+        name: 'due_date',
         label: 'End Date',
         options: {
             filter: true,
@@ -150,17 +162,21 @@ const {
     search,
     fetch,
     next,
-    prev
+    prev,
+    first,
+    last,
+    goto
 } = usePagination(
     (_page, _limit, _search) =>
-        activity.load({
-            page: _page,
-            limit: _limit,
-            search: _search,
-            filters: filters.value,
-            sort_column: sortColumn.value,
-            sort_direction: sortDirection.value
-        })
+        activity.load(_page, _limit, sortDirection.value, _search)
+        // activity.load({
+        //     page: _page,
+        //     limit: _limit,
+        //     search: _search,
+        //     filters: filters.value,
+        //     sort_column: sortColumn.value,
+        //     sort_direction: sortDirection.value
+        // })
 );
 
 onMounted(fetch);

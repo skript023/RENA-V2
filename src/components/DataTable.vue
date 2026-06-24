@@ -326,14 +326,14 @@
 
     </div>
 
-    <div class="join">
+        <div class="join">
 
         <button
             class="btn btn-sm join-item"
             :disabled="page === 1"
             @click="$emit('first')"
         >
-            <i class="ph ph-caret-double-left"></i>
+            <<
         </button>
 
         <button
@@ -341,21 +341,41 @@
             :disabled="page === 1"
             @click="$emit('prev')"
         >
-            <i class="ph ph-caret-left"></i>
+            <
         </button>
 
-        <button
-            class="btn btn-sm btn-primary join-item"
+        <template
+            v-for="p in visiblePages"
+            :key="p"
         >
-            {{ page }}
-        </button>
+
+            <button
+                v-if="p !== '...'"
+                class="btn btn-sm join-item"
+                :class="{
+                    'btn-primary': p === page
+                }"
+                @click="$emit('goto', Number(p))"
+            >
+                {{ p }}
+            </button>
+
+            <button
+                v-else
+                disabled
+                class="btn btn-sm join-item"
+            >
+                ...
+            </button>
+
+        </template>
 
         <button
             class="btn btn-sm join-item"
             :disabled="page >= lastPage"
             @click="$emit('next')"
         >
-            <i class="ph ph-caret-right"></i>
+            >
         </button>
 
         <button
@@ -363,7 +383,7 @@
             :disabled="page >= lastPage"
             @click="$emit('last')"
         >
-            <i class="ph ph-caret-double-right"></i>
+            >>
         </button>
 
     </div>
@@ -420,7 +440,7 @@ const emit = defineEmits<{
     }): void;
 
     (e: 'selection-change', rows: any[]): void;
-
+    (e: 'goto', page: number): void;
     (e: 'next'): void;
     (e: 'prev'): void;
     (e: 'first'): void;
@@ -473,6 +493,46 @@ const displayedColumns = computed(() =>
         x => visibleColumns.value.includes(x.name)
     )
 );
+
+const visiblePages = computed(() => {
+    const pages: (number | string)[] = [];
+
+    const total = props.lastPage;
+    const current = props.page;
+
+    if (total <= 7)
+    {
+        for (let i = 1; i <= total; i++)
+            pages.push(i);
+
+        return pages;
+    }
+
+    pages.push(1);
+
+    if (current > 3)
+        pages.push('...');
+
+    const start =
+        Math.max(2, current - 1);
+
+    const end =
+        Math.min(total - 1, current + 1);
+
+    for (
+        let i = start;
+        i <= end;
+        i++
+    )
+        pages.push(i);
+
+    if (current < total - 2)
+        pages.push('...');
+
+    pages.push(total);
+
+    return pages;
+});
 
 function getValue(obj: Record<string, any>, path: string): any {
     return path

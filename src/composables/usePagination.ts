@@ -33,13 +33,46 @@ export function usePagination<T>(fetcher: (page: number, limit: number, search?:
         fetch();
     });
 
-    const next = () => {
-        if (page.value < lastPage.value) page.value++;
-    };
+    async function next()
+    {
+        await goto(
+            page.value + 1
+        );
+    }
 
-    const prev = () => {
-        if (page.value > 1) page.value--;
-    };
+    async function prev()
+    {
+        await goto(
+            page.value - 1
+        );
+    }
+
+    async function first()
+    {
+        await goto(1);
+    }
+
+    async function last()
+    {
+        await goto(
+            lastPage.value
+        );
+    }
+
+    async function goto(
+        target: number
+    )
+    {
+        if (
+            target < 1 ||
+            target > lastPage.value
+        )
+            return;
+
+        page.value = target;
+
+        await fetch();
+    }
 
     return {
         page,
@@ -50,6 +83,9 @@ export function usePagination<T>(fetcher: (page: number, limit: number, search?:
         search,
         fetch,
         next,
-        prev
+        prev,
+        first,
+        last,
+        goto
     };
 }
