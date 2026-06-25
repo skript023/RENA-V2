@@ -68,7 +68,7 @@ class authentication extends(storage)
 
     async userProfile(): Promise<Profile | null>
     {
-        const response = await http.get('/profile/detail', {
+        const response = await http.get('/user/profile', {
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${this.getRawData('ACCESS_TOKEN')}`

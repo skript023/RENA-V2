@@ -1,4 +1,20 @@
 <template>
+    <FormModal
+        ref="formModal"
+        v-model="form"
+        :title="
+            editingId
+                ? 'Edit Activity'
+                : 'Create Activity'
+        "
+        :fields="fields"
+        :submit-label="
+            editingId
+                ? 'Update'
+                : 'Create'
+        "
+        @submit="submitForm"
+    />
     <Navigation title="Activity">
 
         <DataTable
@@ -80,8 +96,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 
-import Navigation from '@/components/Navigation.vue';
 import DataTable from '@/components/DataTable.vue';
+import Navigation from '@/components/Navigation.vue';
+import FormModal from '@/components/FormModal.vue';
 
 import { usePagination } from '@/composables/usePagination';
 
@@ -93,6 +110,58 @@ const filters = ref<Record<string, string>>({});
 
 const sortColumn = ref('');
 const sortDirection = ref<'asc' | 'desc'>('desc');
+const formModal = ref();
+const editingId = ref<string | null>(null);
+
+const form = ref({
+    title: '',
+    description: '',
+    status: 'pending',
+    start_date: '',
+    due_date: ''
+});
+
+const fields: any = [
+    {
+        key: 'title',
+        label: 'Title',
+        type: 'text'
+    },
+    {
+        key: 'description',
+        label: 'Description',
+        type: 'textarea'
+    },
+    {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        options: [
+            {
+                label: 'Pending',
+                value: 'pending'
+            },
+            {
+                label: 'Completed',
+                value: 'completed'
+            },
+            {
+                label: 'Cancelled',
+                value: 'cancelled'
+            }
+        ]
+    },
+    {
+        key: 'start_date',
+        label: 'Start Date',
+        type: 'date'
+    },
+    {
+        key: 'due_date',
+        label: 'End Date',
+        type: 'date'
+    }
+];
 
 const columns = [
     {
@@ -208,7 +277,17 @@ function onSort(payload: {
 
 function createTask()
 {
-    console.log('create');
+    editingId.value = null;
+
+    form.value = {
+        title: '',
+        description: '',
+        status: 'pending',
+        start_date: '',
+        due_date: ''
+    };
+
+    formModal.value.open();
 }
 
 function exportExcel()
@@ -218,12 +297,39 @@ function exportExcel()
 
 function editTask(row: any)
 {
-    console.log('edit', row);
+    editingId.value = row.id;
+
+    form.value = {
+        title: row.title,
+        description: row.description,
+        status: row.status,
+        start_date: row.start_date,
+        due_date: row.due_date
+    };
+
+    formModal.value.open();
 }
 
 function deleteTask(row: any)
 {
     console.log('delete', row);
+}
+
+async function submitForm(payload: any)
+{
+    if (editingId.value)
+    {
+        await activity.update(
+            editingId.value,
+            payload
+        );
+    }
+    else
+    {
+        await activity.create(payload);
+    }
+
+    fetch();
 }
 
 function getStatusClass(status: string)

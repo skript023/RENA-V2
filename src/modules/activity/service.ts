@@ -59,4 +59,23 @@ export default class activity
             return error.response.data;
         }
     }
+    static async update<T>(id: string, task: Task): Promise<ServerResponse<T>>
+    {
+        try 
+        {
+            const response = await http.put(`activity/${id}`, { 
+                body: JSON.stringify(task),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
+                }
+            });
+
+            return response.data;
+        } 
+        catch (error: any)
+        {
+            return error.response.data;
+        }
+    }
 }

@@ -73,13 +73,13 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const token = localStorage.getItem("ACCESS_TOKEN"); // atau pinia store
 
-  // if (to.meta.requiresAuth && !token) {
-  //   return next("/");
-  // }
+  if (to.meta.requiresAuth && !token) {
+    return next("/");
+  }
 
-  // if (to.meta.guestOnly && token) {
-  //   return next("/dashboard");
-  // }
+  if (to.meta.guestOnly && token) {
+    return next("/dashboard");
+  }
 
   next();
 });

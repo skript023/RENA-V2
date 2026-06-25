@@ -131,7 +131,7 @@ request.interceptors.response.use(
         }
 
         // kalau refresh gagal → logout
-        if (originalRequest.url?.includes("/refresh")) {
+        if (originalRequest.url?.includes("/auth/refresh")) {
             clearToken();
             window.location.href = "/";
             return Promise.reject(error);
@@ -172,7 +172,7 @@ request.interceptors.response.use(
         try {
             console.log("REFRESH START");
 
-            const res = await refreshClient.post("/refresh");
+            const res = await refreshClient.post("/auth/refresh");
 
             const newToken = res.data?.data?.token;
 
