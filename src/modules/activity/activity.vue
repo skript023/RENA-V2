@@ -16,7 +16,6 @@
         @submit="submitForm"
     />
     <Navigation title="Activity">
-
         <DataTable
             title="Activity Logs"
             :items="activities"
@@ -27,6 +26,7 @@
             :loading="loading"
             :search="search"
             row-key="id"
+            @refresh="refresh"
             @update:search="search = $event"
             @add="createTask"
             @export="exportExcel"
@@ -103,6 +103,14 @@ import FormModal from '@/components/FormModal.vue';
 import { usePagination } from '@/composables/usePagination';
 
 import activity from './service';
+import type { CreateActivityDto, TaskCategory } from './dto/activity.dto';
+import authentication from '@/stores/authentication';
+import time from '@/util/time';
+import { useConfirm } from '@/composables/useConfirm';
+import { useNotification } from '@/composables/useNotification';
+
+const { confirm } = useConfirm();
+const { notify } = useNotification();
 
 const selectedRows = ref<any[]>([]);
 
@@ -112,13 +120,21 @@ const sortColumn = ref('');
 const sortDirection = ref<'asc' | 'desc'>('desc');
 const formModal = ref();
 const editingId = ref<string | null>(null);
+const categories = ref<TaskCategory[]>([]);
 
-const form = ref({
-    title: '',
-    description: '',
-    status: 'pending',
-    start_date: '',
-    due_date: ''
+const form = ref<CreateActivityDto>({
+  user_id: '',
+  title: '',
+  description: '',
+  priority: '',
+  weight: 0,
+  frequency: '',
+  evidence_required: false,
+  category_id: '',
+  start_date: '',
+  due_date: '',
+  require_manual_assignment: false,
+  status: 'pending',
 });
 
 const fields: any = [
@@ -133,21 +149,90 @@ const fields: any = [
         type: 'textarea'
     },
     {
+        key: 'weight',
+        label: 'Effort',
+        type: 'number'
+    },
+     {
+        key: 'category_id',
+        label: 'Category',
+        type: 'select',
+        placeholder: 'Select category',
+        options: []
+    },
+    {
+        key: 'priority',
+        label: 'Priority',
+        type: 'select',
+        options: [
+            {
+                label: 'Critical',
+                value: 'Critical'
+            },
+            {
+                label: 'High',
+                value: 'High'
+            },
+            {
+                label: 'Medium',
+                value: 'Medium'
+            },
+            {
+                label: 'Low',
+                value: 'Low'
+            }
+        ]
+    },
+    {
+        key: 'frequency',
+        label: 'Frequency',
+        type: 'select',
+        options: [
+            {
+                label: 'Once',
+                value: 'once'
+            },
+            {
+                label: 'Daily',
+                value: 'daily'
+            },
+            {
+                label: 'Weekly',
+                value: 'weekly'
+            },
+            {
+                label: 'Monthly',
+                value: 'monthly'
+            },
+            {
+                label: 'Quarterly',
+                value: 'quarterly'
+            },
+            {
+                label: 'Semester',
+                value: 'semester'
+            }
+        ]
+    },
+    {
+        key: 'evidence_required',
+        label: 'Evidence Required?',
+        type: 'checkbox',
+        defaultValue: true,
+        value: true
+    },
+    {
         key: 'status',
         label: 'Status',
         type: 'select',
         options: [
             {
-                label: 'Pending',
-                value: 'pending'
+                label: 'Open',
+                value: 'Open'
             },
             {
                 label: 'Completed',
-                value: 'completed'
-            },
-            {
-                label: 'Cancelled',
-                value: 'cancelled'
+                value: 'Completed'
             }
         ]
     },
@@ -248,7 +333,36 @@ const {
         // })
 );
 
-onMounted(fetch);
+async function loadCategories()
+{
+    const res = await activity.categories();
+
+    categories.value = res.data;
+
+    const field = fields.find((x: { key: string; }) => x.key === 'category_id');
+
+    if (!field)
+    {
+        return;
+    }
+
+    field.options = categories.value.map((category: any) => ({
+            label:
+                category.name,
+
+            value:
+                category.id
+        })
+    );
+}
+
+onMounted(async () =>
+{
+    await Promise.all([
+        fetch(),
+        loadCategories()
+    ]);
+});
 
 const activities = computed(
     () => data.value ?? []
@@ -280,11 +394,29 @@ function createTask()
     editingId.value = null;
 
     form.value = {
+        user_id: authentication.data()?.id as string,
+
         title: '',
+
         description: '',
-        status: 'pending',
+
+        priority: '',
+
+        weight: 0,
+
+        frequency: '',
+
+        evidence_required: true,
+
+        category_id: '',
+
         start_date: '',
-        due_date: ''
+
+        due_date: '',
+
+        require_manual_assignment: false,
+
+        status: 'Open'
     };
 
     formModal.value.open();
@@ -300,36 +432,91 @@ function editTask(row: any)
     editingId.value = row.id;
 
     form.value = {
-        title: row.title,
-        description: row.description,
-        status: row.status,
-        start_date: row.start_date,
+        user_id: row.user_id ?? authentication.data()?.id,
+
+        title: row.title ?? '',
+
+        description: row.description ?? '',
+
+        priority: row.priority ?? '',
+
+        weight: Number( row.weight ) ?? 0,
+
+        frequency: row.frequency ?? '',
+
+        evidence_required: row.evidence_required ?? false,
+
+        category_id: row.category_id ?? '',
+
+        start_date: row.start_date?.split('T')[0] ?? '',
+
         due_date: row.due_date
+                ?.split(
+                    'T'
+                )[0] ??
+            '',
+
+        require_manual_assignment: row.require_manual_assignment ?? false,
+
+        status: row.status ?? 'Open'
     };
 
     formModal.value.open();
 }
 
-function deleteTask(row: any)
+async function deleteTask(row: any)
 {
-    console.log('delete', row);
+    const ok = await confirm({
+        title: "Delete Task",
+        message: `Delete ${row.title}? This action cannot be undone.`,
+        confirmText: "Delete",
+        cancelText: "Cancel"
+    })
+
+    if (!ok) return
+
+    try {
+        await activity.remove(row.id);
+
+        notify("Task deleted!", "success");
+    } catch {
+        notify("Failed to delete task", "error");
+    }
+    
+    await fetch();
 }
 
 async function submitForm(payload: any)
 {
+    const body = {
+        ...payload,
+        start_date: time.database_date(payload.start_date),
+        due_date: time.database_date(payload.due_date)
+    };
+
     if (editingId.value)
     {
         await activity.update(
             editingId.value,
-            payload
+            body
         );
+
+        notify("Task updated!", "success");
     }
     else
     {
-        await activity.create(payload);
+        await activity.create(
+            body
+        );
+
+        notify("Task submitted!", "success");
     }
 
-    fetch();
+    await fetch();
+}
+
+async function refresh() {
+    await fetch();
 }
 
 function getStatusClass(status: string)

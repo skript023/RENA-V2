@@ -16,39 +16,114 @@
                     :key="field.key"
                 >
 
-                    <label class="label">
-                        {{ field.label }}
+                    <!-- Checkbox -->
+                    <label
+                        v-if="field.type === 'checkbox'"
+                        class="label cursor-pointer justify-start gap-3"
+                    >
+                        <input
+                            type="checkbox"
+                            class="checkbox"
+                            :checked="localModel[field.key]"
+                            @change="
+                                updateField(
+                                    field.key,
+                                    ($event.target as HTMLInputElement).checked
+                                )
+                            "
+                        />
+
+                        <span>
+                            {{ field.label }}
+                        </span>
                     </label>
 
-                    <!-- Input -->
-                    <input
-                        v-if="field.type !== 'textarea' && field.type !== 'select'"
-                        v-model="localModel[field.key]"
-                        :type="field.type"
-                        class="input input-bordered w-full"
-                    />
+                    <template v-else>
 
-                    <!-- Textarea -->
-                    <textarea
-                        v-else-if="field.type === 'textarea'"
-                        v-model="localModel[field.key]"
-                        class="textarea textarea-bordered w-full"
-                    />
+                        <label class="label">
+                            {{ field.label }}
+                        </label>
 
-                    <!-- Select -->
-                    <select
-                        v-else
-                        v-model="localModel[field.key]"
-                        class="select select-bordered w-full"
-                    >
-                        <option
-                            v-for="option in field.options"
-                            :key="option.value"
-                            :value="option.value"
+                        <!-- Input -->
+                        <input
+                            v-if="
+                                field.type !== 'textarea' &&
+                                field.type !== 'select'
+                            "
+                            :value="localModel[field.key]"
+                            @input="
+                                updateField(
+                                    field.key,
+
+                                    field.type === 'number'
+                                        ? (
+                                            ($event.target as HTMLInputElement)
+                                                .value === ''
+                                                ? ''
+                                                : Number(
+                                                    ($event.target as HTMLInputElement)
+                                                        .value
+                                                )
+                                        )
+                                        : (
+                                            ($event.target as HTMLInputElement)
+                                                .value
+                                        )
+                                )
+                            "
+                            :type="field.type ?? 'text'"
+                            :placeholder="field.placeholder"
+                            class="input input-bordered w-full"
+                        />
+
+                        <!-- Textarea -->
+                        <textarea
+                            v-else-if="
+                                field.type === 'textarea'
+                            "
+                            :value="localModel[field.key]"
+                            @input="
+                                updateField(
+                                    field.key,
+                                    ($event.target as HTMLTextAreaElement).value
+                                )
+                            "
+                            :placeholder="field.placeholder"
+                            class="textarea textarea-bordered w-full"
+                        />
+
+                        <!-- Select -->
+                        <select
+                            v-else
+                            :value="localModel[field.key]"
+                            @change="
+                                updateField(
+                                    field.key,
+                                    ($event.target as HTMLSelectElement).value
+                                )
+                            "
+                            class="select select-bordered w-full"
                         >
-                            {{ option.label }}
-                        </option>
-                    </select>
+
+                            <option
+                                v-if="field.placeholder"
+                                disabled
+                                value=""
+                            >
+                                {{ field.placeholder }}
+                            </option>
+
+                            <option
+                                v-for="option in field.options"
+                                :key="option.value"
+                                :value="option.value"
+                            >
+                                {{ option.label }}
+                            </option>
+
+                        </select>
+
+                    </template>
 
                 </div>
 
@@ -77,50 +152,140 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import {
+    computed,
+    ref
+} from 'vue';
 
 type Field = {
     key: string;
+
     label: string;
-    type?: 'text' | 'date' | 'textarea' | 'select';
+
+    type?:
+        | 'text'
+        | 'number'
+        | 'date'
+        | 'textarea'
+        | 'select'
+        | 'checkbox';
+
+    placeholder?: string;
+
+    defaultValue?: any;
+
     options?: {
         label: string;
-        value: string;
+        value: any;
     }[];
 };
 
-const props = defineProps<{
-    title: string;
-    fields: Field[];
-    modelValue: Record<string, any>;
-    submitLabel?: string;
-}>();
+const props =
+    withDefaults(
+        defineProps<{
+            title: string;
 
-const emit = defineEmits([
-    'update:modelValue',
-    'submit'
-]);
+            fields: Field[];
 
-const modal = ref<HTMLDialogElement>();
+            modelValue: Record<string, any>;
 
-const localModel = computed({
-    get: () => props.modelValue,
-    set: (v) => emit('update:modelValue', v)
-});
+            submitLabel?: string;
+        }>(),
+        {
+            submitLabel:
+                'Submit'
+        }
+    );
+
+const emit =
+    defineEmits<{
+        (
+            e:
+                'update:modelValue',
+            value:
+                Record<string, any>
+        ): void;
+
+        (
+            e:
+                'submit',
+            value:
+                Record<string, any>
+        ): void;
+    }>();
+
+const modal =
+    ref<HTMLDialogElement>();
+
+const localModel =
+    computed(() =>
+    {
+        const model = {
+            ...props.modelValue
+        };
+
+        for (
+            const field
+            of props.fields
+        )
+        {
+            if (
+                model[field.key] ===
+                undefined
+            )
+            {
+                model[field.key] =
+                    field.defaultValue ??
+                    (
+                        field.type ===
+                        'checkbox'
+                            ? false
+                            : field.type ===
+                            'number'
+                                ? 0
+                                : ''
+                    );
+            }
+        }
+
+        return model;
+    });
+
+function updateField(
+    key: string,
+    value: any
+)
+{
+    emit(
+        'update:modelValue',
+        {
+            ...props.modelValue,
+            [key]:
+                value
+        }
+    );
+}
 
 function open()
 {
-    modal.value?.showModal();
+    modal
+        .value
+        ?.showModal();
 }
 
 function close()
 {
-    modal.value?.close();
+    modal
+        .value
+        ?.close();
 }
 
 function submit()
 {
-    emit('submit', localModel.value);
+    emit(
+        'submit',
+        localModel.value
+    );
 
     close();
 }

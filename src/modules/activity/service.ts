@@ -1,6 +1,7 @@
 import { http, type ServerResponse } from "@/util/http";
 import type Task from "./dto/activity.dto";
 import authentication from "@/stores/authentication";
+import type { TaskCategory } from "./dto/activity.dto";
 
 export default class activity
 {
@@ -8,8 +9,7 @@ export default class activity
     {
         try 
         {
-            const response = await http.post('activity', { 
-                body: JSON.stringify(task),
+            const response = await http.post('tasks', task, { 
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
@@ -46,7 +46,7 @@ export default class activity
     {
         try 
         {
-            const response = await http.get(`activity/${id}`, { 
+            const response = await http.get(`tasks/${id}`, { 
                 headers: {
                     "Content-Type": "application/json"
                 }
@@ -63,8 +63,7 @@ export default class activity
     {
         try 
         {
-            const response = await http.put(`activity/${id}`, { 
-                body: JSON.stringify(task),
+            const response = await http.put(`tasks/${id}`, task, { 
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
@@ -73,6 +72,42 @@ export default class activity
 
             return response.data;
         } 
+        catch (error: any)
+        {
+            return error.response.data;
+        }
+    }
+    static async remove<T>(id: string): Promise<ServerResponse<T>>
+    {
+        try 
+        {
+            const response = await http.delete(`tasks/${id}`, { 
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
+                }
+            });
+
+            return response.data;
+        } 
+        catch (error: any)
+        {
+            return error.response.data;
+        }
+    }
+    static async categories(): Promise<ServerResponse<TaskCategory[]>>
+    {
+        try 
+        {
+            const response = await http.get('tasks/categories', { 
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
+                },
+            });
+
+            return response.data;
+        }
         catch (error: any)
         {
             return error.response.data;
