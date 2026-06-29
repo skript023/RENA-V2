@@ -362,7 +362,7 @@
         >
 
             <button
-                v-if="p !== '...'"
+                v-if="String(p) !== '...'"
                 class="btn btn-sm join-item"
                 :class="{
                     'btn-primary': p === page
