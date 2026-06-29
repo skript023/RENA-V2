@@ -39,6 +39,28 @@
             @last="last"
 
             @goto="goto"
+            :visible-pages="5"
+
+            :selected-actions="[
+                {
+                    label: 'Delete',
+                    icon: 'ph ph-trash',
+                    class: 'btn-error',
+                    onClick: (rows: any[]) => {console.log('delete', rows);}
+                },
+                {
+                    label: 'Sync',
+                    icon: 'ph ph-check',
+                    class: 'btn-success',
+                    onClick: () => {}
+                },
+                {
+                    label: 'Export',
+                    icon: 'ph ph-file',
+                    class: 'btn-info',
+                    onClick: () => {}
+                }
+            ]"
         >
 
             <template #cell-user.fullname="{ row }">
@@ -108,6 +130,7 @@ import authentication from '@/stores/authentication';
 import time from '@/util/time';
 import { useConfirm } from '@/composables/useConfirm';
 import { useNotification } from '@/composables/useNotification';
+import moment from 'moment';
 
 const { confirm } = useConfirm();
 const { notify } = useNotification();
@@ -151,19 +174,22 @@ const fields: any = [
     {
         key: 'weight',
         label: 'Effort',
-        type: 'number'
+        type: 'number',
+        defaultValue: 4,
     },
-     {
+    {
         key: 'category_id',
         label: 'Category',
         type: 'select',
         placeholder: 'Select category',
+        defaultValue: 'Meeting',
         options: []
     },
     {
         key: 'priority',
         label: 'Priority',
         type: 'select',
+        defaultValue: 'Medium',
         options: [
             {
                 label: 'Critical',
@@ -187,6 +213,7 @@ const fields: any = [
         key: 'frequency',
         label: 'Frequency',
         type: 'select',
+        defaultValue: 'once',
         options: [
             {
                 label: 'Once',
@@ -218,13 +245,14 @@ const fields: any = [
         key: 'evidence_required',
         label: 'Evidence Required?',
         type: 'checkbox',
-        defaultValue: true,
+        defaultValue: false,
         value: true
     },
     {
         key: 'status',
         label: 'Status',
         type: 'select',
+        defaultValue: 'Completed',
         options: [
             {
                 label: 'Open',
@@ -400,19 +428,18 @@ function createTask()
 
         description: '',
 
-        priority: '',
+        priority: 'Medium',
 
-        weight: 0,
+        weight: 3,
 
-        frequency: '',
+        frequency: 'once',
 
-        evidence_required: true,
+        evidence_required: false,
 
-        category_id: '',
+        category_id: '3ab1fde2-22f4-459a-9ceb-0990dfb2e2c4',
 
-        start_date: '',
-
-        due_date: '',
+        start_date: moment().format('YYYY-MM-DD'),
+        due_date: moment().format('YYYY-MM-DD'),
 
         require_manual_assignment: false,
 

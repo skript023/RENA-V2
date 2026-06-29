@@ -22,15 +22,9 @@
                         class="label cursor-pointer justify-start gap-3"
                     >
                         <input
+                            v-model="localModel[field.key]"
                             type="checkbox"
                             class="checkbox"
-                            :checked="localModel[field.key]"
-                            @change="
-                                updateField(
-                                    field.key,
-                                    ($event.target as HTMLInputElement).checked
-                                )
-                            "
                         />
 
                         <span>
@@ -50,26 +44,8 @@
                                 field.type !== 'textarea' &&
                                 field.type !== 'select'
                             "
-                            :value="localModel[field.key]"
-                            @input="
-                                updateField(
-                                    field.key,
-
-                                    field.type === 'number'
-                                        ? (
-                                            ($event.target as HTMLInputElement)
-                                                .value === ''
-                                                ? ''
-                                                : Number(
-                                                    ($event.target as HTMLInputElement)
-                                                        .value
-                                                )
-                                        )
-                                        : (
-                                            ($event.target as HTMLInputElement)
-                                                .value
-                                        )
-                                )
+                            v-model="
+                                localModel[field.key]
                             "
                             :type="field.type ?? 'text'"
                             :placeholder="field.placeholder"
@@ -81,12 +57,8 @@
                             v-else-if="
                                 field.type === 'textarea'
                             "
-                            :value="localModel[field.key]"
-                            @input="
-                                updateField(
-                                    field.key,
-                                    ($event.target as HTMLTextAreaElement).value
-                                )
+                            v-model="
+                                localModel[field.key]
                             "
                             :placeholder="field.placeholder"
                             class="textarea textarea-bordered w-full"
@@ -95,13 +67,7 @@
                         <!-- Select -->
                         <select
                             v-else
-                            :value="localModel[field.key]"
-                            @change="
-                                updateField(
-                                    field.key,
-                                    ($event.target as HTMLSelectElement).value
-                                )
-                            "
+                            v-model="localModel[field.key]"
                             class="select select-bordered w-full"
                         >
 
@@ -153,8 +119,8 @@
 
 <script setup lang="ts">
 import {
-    computed,
-    ref
+    ref,
+    watch
 } from 'vue';
 
 type Field = {
@@ -200,17 +166,13 @@ const props =
 const emit =
     defineEmits<{
         (
-            e:
-                'update:modelValue',
-            value:
-                Record<string, any>
+            e: 'update:modelValue',
+            value: Record<string, any>
         ): void;
 
         (
-            e:
-                'submit',
-            value:
-                Record<string, any>
+            e: 'submit',
+            value: Record<string, any>
         ): void;
     }>();
 
@@ -218,7 +180,14 @@ const modal =
     ref<HTMLDialogElement>();
 
 const localModel =
-    computed(() =>
+    ref<Record<string, any>>({});
+
+watch(
+    () => [
+        props.modelValue,
+        props.fields
+    ],
+    () =>
     {
         const model = {
             ...props.modelValue
@@ -248,23 +217,37 @@ const localModel =
             }
         }
 
-        return model;
-    });
+        localModel.value =
+            model;
 
-function updateField(
-    key: string,
-    value: any
-)
-{
-    emit(
-        'update:modelValue',
-        {
-            ...props.modelValue,
-            [key]:
-                value
-        }
-    );
-}
+        emit(
+            'update:modelValue',
+            model
+        );
+    },
+    {
+        immediate: true,
+        deep: true
+    }
+);
+
+watch(
+    localModel,
+    (
+        value
+    ) =>
+    {
+        emit(
+            'update:modelValue',
+            {
+                ...value
+            }
+        );
+    },
+    {
+        deep: true
+    }
+);
 
 function open()
 {
@@ -284,7 +267,9 @@ function submit()
 {
     emit(
         'submit',
-        localModel.value
+        {
+            ...localModel.value
+        }
     );
 
     close();

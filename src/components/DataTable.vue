@@ -45,13 +45,25 @@
 
         <div
             v-if="selectedRows.length"
-            class="dropdown"
+            class="flex gap-2"
         >
             <button
-                class="btn btn-error btn-sm"
+                v-for="action in selectedActions"
+                :key="action.label"
+                class="btn btn-sm"
+                :class="action.class"
+                @click="
+                    action.onClick?.(
+                        selectedRows
+                    )
+                "
             >
-                <i class="ph ph-trash"></i>
-                Delete Selected
+                <i
+                    v-if="action.icon"
+                    :class="action.icon"
+                />
+
+                {{ action.label }}
             </button>
         </div>
 
@@ -396,10 +408,20 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 
+interface BulkAction {
+    label: string;
+    icon?: string;
+    class?: string;
+
+    onClick?: (
+        rows: any[]
+    ) => void;
+}
+
 interface Props {
     title: string;
-    items: any[];
 
+    items: any[];
     columns: any[];
 
     page: number;
@@ -411,6 +433,10 @@ interface Props {
 
     selectable?: boolean;
     rowKey?: string;
+
+    visiblePages?: number;
+
+    selectedActions?: BulkAction[];
 }
 
 const props = withDefaults(
@@ -418,8 +444,13 @@ const props = withDefaults(
     {
         search: '',
         loading: false,
+
         selectable: true,
-        rowKey: 'id'
+        rowKey: 'id',
+
+        visiblePages: 5,
+
+        selectedActions: () => []
     }
 );
 
@@ -497,36 +528,73 @@ const displayedColumns = computed(() =>
 const visiblePages = computed(() => {
     const pages: (number | string)[] = [];
 
-    const total = props.lastPage;
-    const current = props.page;
+    const total =
+        props.lastPage;
 
-    if (total <= 7)
+    const current =
+        props.page;
+
+    const max =
+        props.visiblePages;
+
+    if (total <= max)
     {
-        for (let i = 1; i <= total; i++)
-            pages.push(i);
+        return Array
+            .from(
+                { length: total },
+                (_, i) => i + 1
+            );
+    }
 
-        return pages;
+    const side =
+        Math.floor(
+            (max - 3) / 2
+        );
+
+    let start =
+        Math.max(
+            2,
+            current - side
+        );
+
+    let end =
+        Math.min(
+            total - 1,
+            current + side
+        );
+
+    if (
+        current <= side + 2
+    )
+    {
+        end =
+            max - 1;
+    }
+
+    if (
+        current >=
+        total - side - 1
+    )
+    {
+        start =
+            total - max + 2;
     }
 
     pages.push(1);
 
-    if (current > 3)
+    if (start > 2)
         pages.push('...');
-
-    const start =
-        Math.max(2, current - 1);
-
-    const end =
-        Math.min(total - 1, current + 1);
 
     for (
         let i = start;
         i <= end;
         i++
     )
+    {
         pages.push(i);
+    }
 
-    if (current < total - 2)
+    if (end < total - 1)
         pages.push('...');
 
     pages.push(total);
