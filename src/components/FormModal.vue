@@ -147,136 +147,181 @@ type Field = {
 };
 
 const props =
-    withDefaults(
-        defineProps<{
-            title: string;
+withDefaults(
+defineProps<{
+title: string;
 
-            fields: Field[];
+fields: Field[];
 
-            modelValue: Record<string, any>;
+modelValue:
+Record<
+string,
+any
+>;
 
-            submitLabel?: string;
-        }>(),
-        {
-            submitLabel:
-                'Submit'
-        }
-    );
-
-const emit =
-    defineEmits<{
-        (
-            e: 'update:modelValue',
-            value: Record<string, any>
-        ): void;
-
-        (
-            e: 'submit',
-            value: Record<string, any>
-        ): void;
-    }>();
-
-const modal =
-    ref<HTMLDialogElement>();
-
-const localModel =
-    ref<Record<string, any>>({});
-
-watch(
-    () => [
-        props.modelValue,
-        props.fields
-    ],
-    () =>
-    {
-        const model = {
-            ...props.modelValue
-        };
-
-        for (
-            const field
-            of props.fields
-        )
-        {
-            if (
-                model[field.key] ===
-                undefined
-            )
-            {
-                model[field.key] =
-                    field.defaultValue ??
-                    (
-                        field.type ===
-                        'checkbox'
-                            ? false
-                            : field.type ===
-                            'number'
-                                ? 0
-                                : ''
-                    );
-            }
-        }
-
-        localModel.value =
-            model;
-
-        emit(
-            'update:modelValue',
-            model
-        );
-    },
-    {
-        immediate: true,
-        deep: true
-    }
+submitLabel?:
+string;
+}>(),
+{
+submitLabel:
+'Submit'
+}
 );
 
+const emit =
+defineEmits<{
+(
+e:
+'update:modelValue',
+value:
+Record<
+string,
+any
+>
+): void;
+
+(
+e:
+'submit',
+value:
+Record<
+string,
+any
+>
+): void;
+}>();
+
+const modal =
+ref<
+HTMLDialogElement
+>();
+
+const localModel =
+ref<
+Record<
+string,
+any
+>
+>({});
+
+function buildModel()
+{
+const model = {
+...props.modelValue
+};
+
+for (
+const field
+of props.fields
+)
+{
+if (
+!(
+field.key
+in model
+)
+)
+{
+model[
+field.key
+] =
+field.defaultValue
+??
+(
+field.type ===
+'checkbox'
+? false
+:
+field.type ===
+'number'
+? 0
+:
+''
+);
+}
+}
+
+return model;
+}
+
+/*
+SYNC PARENT -> LOCAL
+NO EMIT
+*/
 watch(
-    localModel,
-    (
-        value
-    ) =>
-    {
-        emit(
-            'update:modelValue',
-            {
-                ...value
-            }
-        );
-    },
-    {
-        deep: true
-    }
+[
+() =>
+props.modelValue,
+
+() =>
+props.fields
+],
+() =>
+{
+localModel.value =
+buildModel();
+},
+{
+immediate:
+true
+}
+);
+
+/*
+LOCAL -> PARENT
+NO DEEP
+*/
+watch(
+localModel,
+value =>
+{
+emit(
+'update:modelValue',
+{
+...value
+}
+);
+}
 );
 
 function open()
 {
-    modal
-        .value
-        ?.showModal();
+if (
+!modal.value
+)
+return;
+
+if (
+!modal.value.open
+)
+{
+modal
+.value
+.showModal();
+}
 }
 
 function close()
 {
-    modal
-        .value
-        ?.close();
+modal
+.value
+?.close();
 }
 
 function submit()
 {
-    emit(
-        'submit',
-        {
-            ...localModel.value
-        }
-    );
+emit(
+'submit',
+{
+...localModel.value
+}
+);
 
-    close();
+close();
 }
 
 defineExpose({
-    open,
-    close
+open,
+close
 });
 </script>
