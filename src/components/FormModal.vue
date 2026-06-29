@@ -153,172 +153,95 @@
 </template>
 
 <script setup lang="ts">
-import {
-    ref,
-    watch
-} from 'vue';
+import { ref, watch } from "vue";
 
 type Field = {
-    key: string;
+	key: string;
 
-    label: string;
+	label: string;
 
-    type?:
-        | 'text'
-        | 'number'
-        | 'date'
-        | 'textarea'
-        | 'select'
-        | 'checkbox';
+	type?: "text" | "number" | "date" | "textarea" | "select" | "checkbox";
 
-    placeholder?: string;
+	placeholder?: string;
 
-    defaultValue?: any;
+	defaultValue?: any;
 
-    options?: {
-        label: string;
-        value: any;
-    }[];
+	options?: {
+		label: string;
+		value: any;
+	}[];
 };
 
-const props =
-withDefaults(
+const props = withDefaults(
 defineProps<{
-title: string;
+	title: string;
 
-fields: Field[];
+	fields: Field[];
 
-modelValue:
-Record<
-string,
-any
->;
+	modelValue: Record<string, any>;
 
-submitLabel?:
-string;
+	submitLabel?: string;
 }>(),
 {
-submitLabel:
-'Submit'
-}
+	submitLabel: "Submit",
+},
 );
 
-const emit =
-defineEmits([
-'update:modelValue',
-'submit'
-]);
+const emit = defineEmits(["update: modelValue", "submit"]);
 
-const modal =
-ref<
-HTMLDialogElement
->();
+const modal = ref<HTMLDialogElement>();
 
-const localModel =
-ref<
-Record<
-string,
-any
->
->({});
+const localModel = ref<Record<string, any>>({});
 
-function syncModel()
-{
-const next = {
-...props.modelValue
-};
+function syncModel() {
+	const next = {
+		...props.modelValue,
+	};
 
-for (
-const field
-of props.fields
-)
-{
-if (
-next[
-field.key
-] ===
-undefined
-)
-{
-next[
-field.key
-] =
-field.defaultValue ??
-(
-field.type ===
-'checkbox'
-? false
-:
-field.type ===
-'number'
-? 0
-:
-''
-);
-}
+for (const field of props.fields) {
+	if (next[field.key] === undefined) {
+		next[field.key] =
+		field.defaultValue ??
+		(field.type === "checkbox" ? false : field.type === "number" ? 0 : "");
+	}
 }
 
-localModel.value =
-next;
+localModel.value = next;
 }
 
-watch(
-() =>
-props.modelValue,
-syncModel,
-{
-immediate:
-true
-}
-);
+watch(() => props.modelValue, syncModel, {
+	immediate: true,
+});
 
-function open()
-{
-syncModel();
+function open() {
+	syncModel();
 
-if (
-!modal.value
-)
-return;
+	if (!modal.value) return;
 
-if (
-!modal.value.open
-)
-{
-modal
-.value
-.showModal();
-}
+	if (!modal.value.open) {
+		modal.value.showModal();
+	}
 }
 
-function close()
-{
-modal
-.value
-?.close();
+function close() {
+	modal.value?.close();
 }
 
-function submit()
-{
-emit(
-'update:modelValue',
-{
-...localModel.value
-}
-);
+function submit() {
+	emit("update: modelValue", {
+		...localModel.value,
+	});
 
-emit(
-'submit',
-{
-...localModel.value
-}
-);
+emit("submit", {
+	...localModel.value,
+});
 
 close();
 }
 
 defineExpose({
-open,
-close
+	open,
+	close,
 });
+
 </script>
