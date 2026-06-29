@@ -22,14 +22,19 @@
                         class="label cursor-pointer justify-start gap-3"
                     >
                         <input
-                            v-model="localModel[field.key]"
+                            :checked="localModel[field.key]"
                             type="checkbox"
                             class="checkbox"
-                        />
+                            @change="
+                                localModel[field.key] =
+                                ($event.target as HTMLInputElement).checked
+                            "
+                        >
 
                         <span>
                             {{ field.label }}
                         </span>
+
                     </label>
 
                     <template v-else>
@@ -44,35 +49,58 @@
                                 field.type !== 'textarea' &&
                                 field.type !== 'select'
                             "
-                            v-model="
+                            :value="
                                 localModel[field.key]
                             "
-                            :type="field.type ?? 'text'"
-                            :placeholder="field.placeholder"
+                            :type="
+                                field.type ??
+                                'text'
+                            "
+                            :placeholder="
+                                field.placeholder
+                            "
                             class="input input-bordered w-full"
-                        />
+                            @input="
+                                localModel[field.key] =
+                                ($event.target as HTMLInputElement).value
+                            "
+                        >
 
                         <!-- Textarea -->
                         <textarea
                             v-else-if="
                                 field.type === 'textarea'
                             "
-                            v-model="
+                            :value="
                                 localModel[field.key]
                             "
-                            :placeholder="field.placeholder"
+                            :placeholder="
+                                field.placeholder
+                            "
                             class="textarea textarea-bordered w-full"
+                            @input="
+                                localModel[field.key] =
+                                ($event.target as HTMLTextAreaElement).value
+                            "
                         />
 
                         <!-- Select -->
                         <select
                             v-else
-                            v-model="localModel[field.key]"
+                            :value="
+                                localModel[field.key]
+                            "
                             class="select select-bordered w-full"
+                            @change="
+                                localModel[field.key] =
+                                ($event.target as HTMLSelectElement).value
+                            "
                         >
 
                             <option
-                                v-if="field.placeholder"
+                                v-if="
+                                    field.placeholder
+                                "
                                 disabled
                                 value=""
                             >
@@ -80,9 +108,16 @@
                             </option>
 
                             <option
-                                v-for="option in field.options"
-                                :key="option.value"
-                                :value="option.value"
+                                v-for="
+                                    option
+                                    in field.options
+                                "
+                                :key="
+                                    option.value
+                                "
+                                :value="
+                                    option.value
+                                "
                             >
                                 {{ option.label }}
                             </option>
@@ -169,27 +204,10 @@ submitLabel:
 );
 
 const emit =
-defineEmits<{
-(
-e:
+defineEmits([
 'update:modelValue',
-value:
-Record<
-string,
-any
->
-): void;
-
-(
-e:
-'submit',
-value:
-Record<
-string,
-any
->
-): void;
-}>();
+'submit'
+]);
 
 const modal =
 ref<
@@ -204,9 +222,9 @@ any
 >
 >({});
 
-function buildModel()
+function syncModel()
 {
-const model = {
+const next = {
 ...props.modelValue
 };
 
@@ -216,17 +234,16 @@ of props.fields
 )
 {
 if (
-!(
+next[
 field.key
-in model
-)
+] ===
+undefined
 )
 {
-model[
+next[
 field.key
 ] =
-field.defaultValue
-??
+field.defaultValue ??
 (
 field.type ===
 'checkbox'
@@ -241,51 +258,24 @@ field.type ===
 }
 }
 
-return model;
+localModel.value =
+next;
 }
 
-/*
-SYNC PARENT -> LOCAL
-NO EMIT
-*/
 watch(
-[
 () =>
 props.modelValue,
-
-() =>
-props.fields
-],
-() =>
-{
-localModel.value =
-buildModel();
-},
+syncModel,
 {
 immediate:
 true
 }
 );
 
-/*
-LOCAL -> PARENT
-NO DEEP
-*/
-watch(
-localModel,
-value =>
-{
-emit(
-'update:modelValue',
-{
-...value
-}
-);
-}
-);
-
 function open()
 {
+syncModel();
+
 if (
 !modal.value
 )
@@ -310,6 +300,13 @@ modal
 
 function submit()
 {
+emit(
+'update:modelValue',
+{
+...localModel.value
+}
+);
+
 emit(
 'submit',
 {
