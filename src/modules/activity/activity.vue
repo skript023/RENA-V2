@@ -430,7 +430,7 @@ function createTask()
 
         priority: 'Medium',
 
-        weight: 3,
+        weight: 4,
 
         frequency: 'once',
 
@@ -443,7 +443,7 @@ function createTask()
 
         require_manual_assignment: false,
 
-        status: 'Open'
+        status: 'Completed'
     };
 
     formModal.value.open();
