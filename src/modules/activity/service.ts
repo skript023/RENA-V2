@@ -113,4 +113,22 @@ export default class activity
             return error.response.data;
         }
     }
+    static async sync(tasks: {id: string[]}): Promise<ServerResponse<TaskCategory[]>>
+    {
+        try 
+        {
+            const response = await http.post('tasks/sync', tasks, { 
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
+                },
+            });
+
+            return response.data;
+        }
+        catch (error: any)
+        {
+            return error.response.data;
+        }
+    }
 }

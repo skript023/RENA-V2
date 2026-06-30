@@ -46,13 +46,13 @@
                     label: 'Delete',
                     icon: 'ph ph-trash',
                     class: 'btn-error',
-                    onClick: (rows: any[]) => {console.log('delete', rows);}
+                    onClick: deleteTask
                 },
                 {
                     label: 'Sync',
                     icon: 'ph ph-check',
                     class: 'btn-success',
-                    onClick: () => {}
+                    onClick: sync
                 },
                 {
                     label: 'Export',
@@ -544,6 +544,25 @@ async function submitForm(payload: any)
 
 async function refresh() {
     await fetch();
+}
+
+async function sync(rows: any[]) {
+    const ok = await confirm({
+        title: "Sync Task",
+        message: `Are you sure want to sync all this task? this action cannot be undone.`,
+        confirmText: "Sync",
+        cancelText: "Cancel"
+    })
+
+    if (!ok) return;
+    const payload = {
+        id: rows.map(row => row.id)
+    };
+
+    console.log(JSON.stringify(payload));
+    await activity.sync(payload);
+
+    notify("Task synced!", "success");
 }
 
 function getStatusClass(status: string)
