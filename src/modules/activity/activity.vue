@@ -517,6 +517,8 @@ async function submitForm(payload: any)
 {
     const body = {
         ...payload,
+        user_id: authentication.data()?.id, // <-- paksa inject di sini
+        weight: Number(payload.weight),
         start_date: time.database_date(payload.start_date),
         due_date: time.database_date(payload.due_date)
     };
