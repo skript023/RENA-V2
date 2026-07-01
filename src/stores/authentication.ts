@@ -30,7 +30,6 @@ class authentication extends(storage)
             {
                 this.setDuration(new Date());
                 this.setRawData('ACCESS_TOKEN', response.data.data.token);
-                this.setRawData('MSOS_TOKEN', response.data.data.msos_token);
 
                 return true;
             }

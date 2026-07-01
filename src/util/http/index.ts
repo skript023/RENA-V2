@@ -1,4 +1,4 @@
-import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
+import axios, { AxiosHeaders, type AxiosRequestConfig, type AxiosResponse } from "axios";
 
 /* =========================
    TYPES
@@ -73,23 +73,89 @@ const isBackendRequest = (config?: AxiosRequestConfig) => {
 let isRefreshing = false;
 let queue: Array<(token: string | null) => void> = [];
 
+let refreshPromise: Promise<void> | null = null;
+
+export async function refreshAccessToken()
+{
+    if (refreshPromise)
+    {
+        return refreshPromise;
+    }
+
+    refreshPromise = (async () =>
+    {
+        const res = await refreshClient.post("/auth/refresh");
+
+        const token = res.data?.data?.token;
+
+        if (!token)
+        {
+            throw new Error("No token returned");
+        }
+
+        setToken(token);
+
+        request.defaults.headers.common.Authorization =
+            `Bearer ${token}`;
+    })();
+
+    try
+    {
+        await refreshPromise;
+    }
+    finally
+    {
+        refreshPromise = null;
+    }
+}
+
 /* =========================
    REQUEST INTERCEPTOR
 ========================= */
 
-request.interceptors.request.use((config) => {
-    // 🔥 dynamic baseURL
+request.interceptors.request.use(async (config) =>
+{
     config.baseURL = getBackendUrl();
 
-    if (!isBackendRequest(config)) {
+    if (!isBackendRequest(config))
+    {
+        return config;
+    }
+
+    // jangan refresh endpoint sendiri
+    if (config.url?.includes("/auth/refresh"))
+    {
         return config;
     }
 
     const token = getToken();
 
-    if (token) {
-        config.headers = config.headers ?? {};
-        config.headers.Authorization = `Bearer ${token}`;
+    // token kosong → coba refresh dulu
+    if (!token)
+    {
+        try
+        {
+            await refreshAccessToken();
+        }
+        catch
+        {
+            clearToken();
+        }
+    }
+
+    const latest = getToken();
+
+    if (latest)
+    {
+        if (!(config.headers instanceof AxiosHeaders))
+        {
+            config.headers = new AxiosHeaders(config.headers);
+        }
+
+        config.headers.set(
+            "Authorization",
+            `Bearer ${latest}`
+        );
     }
 
     return config;
