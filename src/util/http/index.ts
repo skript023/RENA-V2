@@ -221,8 +221,11 @@ request.interceptors.response.use(
                         return;
                     }
 
-                    originalRequest.headers = originalRequest.headers ?? {};
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
+                    // PERBAIKAN: Pastikan menggunakan AxiosHeaders untuk set token baru
+                    if (!(originalRequest.headers instanceof AxiosHeaders)) {
+                        originalRequest.headers = AxiosHeaders.from(originalRequest.headers as any);
+                    }
+                    originalRequest.headers.set("Authorization", `Bearer ${token}`);
 
                     resolve(request(originalRequest));
                 });
@@ -252,14 +255,17 @@ request.interceptors.response.use(
 
             request.defaults.headers.common.Authorization = `Bearer ${newToken}`;
 
-            // resolve queue
+            // PERBAIKAN: Set token ke request utama yang memicu refresh menggunakan AxiosHeaders
+            if (!(originalRequest.headers instanceof AxiosHeaders)) {
+                originalRequest.headers = AxiosHeaders.from(originalRequest.headers as any);
+            }
+            originalRequest.headers.set("Authorization", `Bearer ${newToken}`);
+
+            // resolve queue untuk request lain yang sedang mengantre
             queue.forEach((cb) => cb(newToken));
             queue = [];
 
             // retry original request
-            originalRequest.headers = originalRequest.headers ?? {};
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-
             return request(originalRequest);
         } catch (err) {
             console.log("REFRESH FAILED");
