@@ -20,10 +20,33 @@ interface RetryRequestConfig extends AxiosRequestConfig {
    BACKEND SELECTOR
 ========================= */
 
+const backendUrls = [
+    import.meta.env.VITE_BACKEND_URL_PROD,
+    import.meta.env.VITE_BACKEND_URL_PROD_2,
+].filter(Boolean);
+
+let activeBackendIndex = 0;
+
 const getBackendUrl = () => {
-    return import.meta.env.VITE_ENVIRONMENT === "development"
-        ? import.meta.env.VITE_BACKEND_URL_DEV
-        : import.meta.env.VITE_BACKEND_URL_PROD;
+    if (import.meta.env.VITE_ENVIRONMENT === "development")
+    {
+        return import.meta.env.VITE_BACKEND_URL_DEV;
+    }
+
+    return backendUrls[activeBackendIndex];
+};
+
+const switchBackend = () => {
+    if (backendUrls.length <= 1)
+        return;
+
+    activeBackendIndex =
+        (activeBackendIndex + 1) % backendUrls.length;
+
+    console.warn(
+        "Switch backend:",
+        backendUrls[activeBackendIndex]
+    );
 };
 
 /* =========================
@@ -115,7 +138,10 @@ export async function refreshAccessToken()
 
 request.interceptors.request.use(async (config) =>
 {
-    config.baseURL = getBackendUrl();
+    if (!config.baseURL)
+    {
+        config.baseURL = getBackendUrl();
+    }
 
     if (!isBackendRequest(config))
     {
@@ -188,7 +214,19 @@ request.interceptors.response.use(
         console.log("INTERCEPTOR:", status, originalRequest?.url);
 
         // network error (CORS dll)
-        if (!error.response) {
+        if (!error.response || [502, 503, 504].includes(error.response.status))
+        {
+            if (!originalRequest._retry)
+            {
+                originalRequest._retry = true;
+
+                switchBackend();
+
+                originalRequest.baseURL = getBackendUrl();
+
+                return request(originalRequest);
+            }
+
             return Promise.reject(error);
         }
 
