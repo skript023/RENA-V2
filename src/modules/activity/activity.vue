@@ -49,10 +49,16 @@
                     onClick: deleteTask
                 },
                 {
-                    label: 'Sync',
+                    label: 'Sync Task Report',
                     icon: 'ph ph-check',
                     class: 'btn-success',
-                    onClick: sync
+                    onClick: syncTaskReport
+                },
+                {
+                    label: 'Sync MSOS',
+                    icon: 'ph ph-check',
+                    class: 'btn-success',
+                    onClick: syncMsos
                 },
                 {
                     label: 'Export',
@@ -295,6 +301,14 @@ const columns = [
     },
     {
         name: 'description',
+        label: 'Description',
+        options: {
+            filter: true,
+            sort: true
+        }
+    },
+    {
+        name: 'category.name',
         label: 'Description',
         options: {
             filter: true,
@@ -548,10 +562,10 @@ async function refresh() {
     await fetch();
 }
 
-async function sync(rows: any[]) {
+async function syncTaskReport(rows: any[]) {
     const ok = await confirm({
         title: "Sync Task",
-        message: `Are you sure want to sync all this task? this action cannot be undone.`,
+        message: `Are you sure want to sync task report this task? this action cannot be undone.`,
         confirmText: "Sync",
         cancelText: "Cancel"
     })
@@ -562,7 +576,26 @@ async function sync(rows: any[]) {
     };
 
     console.log(JSON.stringify(payload));
-    await activity.sync(payload);
+    await activity.syncTaskReport(payload);
+
+    notify("Task synced!", "success");
+}
+
+async function syncMsos(rows: any[]) {
+    const ok = await confirm({
+        title: "Sync Task",
+        message: `Are you sure want to sync msos this task? this action cannot be undone.`,
+        confirmText: "Sync",
+        cancelText: "Cancel"
+    })
+
+    if (!ok) return;
+    const payload = {
+        id: rows.map(row => row.id)
+    };
+
+    console.log(JSON.stringify(payload));
+    await activity.syncMsos(payload);
 
     notify("Task synced!", "success");
 }

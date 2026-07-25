@@ -59,11 +59,15 @@ const clearToken = () => {
 const isBackendRequest = (config?: AxiosRequestConfig) => {
     if (!config?.url) return false;
 
-    // relative → backend
-    if (config.url.startsWith("/")) return true;
-
     const base = getBackendUrl();
-    return config.url.startsWith(base);
+    if (!base) return true; // jika baseURL belum/tidak diset, anggap request backend
+
+    // Cek apakah url relative ATAU diawali dengan base URL backend
+    return (
+        config.url.startsWith("/") ||
+        config.url.startsWith(base) ||
+        (config.baseURL && config.baseURL.startsWith(base))
+    );
 };
 
 /* =========================
