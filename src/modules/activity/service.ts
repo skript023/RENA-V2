@@ -95,7 +95,7 @@ export default class activity
             return error.response.data;
         }
     }
-    static async export<T>(format: string): Promise<ServerResponse<T>>
+    static async export(format: string)
     {
         try 
         {
@@ -107,11 +107,11 @@ export default class activity
                 }
             });
 
-            return response.data;
+            return response;
         } 
         catch (error: any)
         {
-            return error.response.data;
+            return error.response;
         }
     }
     static async categories(): Promise<ServerResponse<TaskCategory[]>>

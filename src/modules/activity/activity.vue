@@ -466,10 +466,37 @@ function createTask()
 async function exportExcel()
 {
     try {
-        await activity.export('csv');
+        // Pastikan API call menggunakan responseType: 'blob' jika pakai Axios
+        const response = await activity.export('csv');
+
+        // 1. Buat Blob dari data response
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        
+        // 2. Ambil nama file dari header 'Content-Disposition' jika ada, atau buat fallback
+        let fileName = 'tasks_export.csv';
+        const disposition = response.headers['content-disposition'];
+        if (disposition && disposition.includes('filename=')) {
+            const matches = /filename="?([^";]+)"?/.exec(disposition);
+            if (matches && matches[1]) fileName = matches[1];
+        }
+
+        // 3. Buat URL temporary dari Blob
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        
+        // 4. Trigger click secara tersembunyi
+        document.body.appendChild(link);
+        link.click();
+        
+        // 5. Cleanup
+        link.parentNode?.removeChild(link);
+        window.URL.revokeObjectURL(url);
 
         notify("Task exported!", "success");
-    } catch {
+    } catch (err) {
+        console.error(err);
         notify("Failed to export task", "error");
     }
 }
