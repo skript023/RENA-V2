@@ -99,7 +99,7 @@ export default class activity
     {
         try 
         {
-            const response = await http.delete(`tasks/export`, { 
+            const response = await http.get(`tasks/export`, { 
                 params: { "format": format },
                 headers: {
                     "Content-Type": "application/json",
