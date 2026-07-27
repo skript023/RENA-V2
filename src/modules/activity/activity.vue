@@ -463,9 +463,15 @@ function createTask()
     formModal.value.open();
 }
 
-function exportExcel()
+async function exportExcel()
 {
-    console.log('export');
+    try {
+        await activity.export('csv');
+
+        notify("Task exported!", "success");
+    } catch {
+        notify("Failed to export task", "error");
+    }
 }
 
 function editTask(row: any)

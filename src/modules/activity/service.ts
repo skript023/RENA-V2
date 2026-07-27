@@ -95,6 +95,25 @@ export default class activity
             return error.response.data;
         }
     }
+    static async export<T>(format: string): Promise<ServerResponse<T>>
+    {
+        try 
+        {
+            const response = await http.delete(`tasks/export`, { 
+                params: { "format": format },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
+                }
+            });
+
+            return response.data;
+        } 
+        catch (error: any)
+        {
+            return error.response.data;
+        }
+    }
     static async categories(): Promise<ServerResponse<TaskCategory[]>>
     {
         try 
