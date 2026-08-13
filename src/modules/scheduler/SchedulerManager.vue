@@ -46,39 +46,51 @@ const fetchTasks = async () => {
       // Fallback sample data for RENA tasks if backend endpoint is initializing
       tasks.value = [
         {
-          id: 'hrmis_checkin',
-          name: 'HRMIS Attendance Check-in',
-          enabled: true,
-          cron: '00 02 07 * * 1-5',
-          timezone: 'Asia/Jakarta',
-          start_time: '06:30',
-          end_time: '08:00',
-          next_run: '2026-08-14 07:02:00',
-          last_run: '2026-08-13 07:02:00',
-          status: 'idle'
-        },
-        {
           id: 'hrmis_checkout',
-          name: 'HRMIS Attendance Check-out',
+          name: 'HRMIS Check-out',
           enabled: true,
           cron: '50 52 17 * * 1-5',
           timezone: 'Asia/Jakarta',
-          start_time: '17:00',
-          end_time: '18:30',
-          next_run: '2026-08-13 17:52:50',
-          last_run: '2026-08-12 17:52:50',
+          start_time: '',
+          end_time: '',
+          next_run: '2026-08-13 10:52:50',
+          last_run: '',
+          status: 'idle'
+        },
+        {
+          id: 'jahra_checkout',
+          name: 'Jahra Check-out',
+          enabled: true,
+          cron: '50 52 17 * * 1-5',
+          timezone: 'Asia/Jakarta',
+          start_time: '',
+          end_time: '',
+          next_run: '2026-08-13 10:52:50',
+          last_run: '',
           status: 'idle'
         },
         {
           id: 'jahra_checkin',
-          name: 'Jahra Attendance Check-in',
+          name: 'Jahra Check-in',
           enabled: true,
           cron: '00 02 07 * * 1-5',
           timezone: 'Asia/Jakarta',
-          start_time: '06:30',
-          end_time: '08:00',
-          next_run: '2026-08-14 07:02:00',
-          last_run: '2026-08-13 07:02:00',
+          start_time: '',
+          end_time: '',
+          next_run: '2026-08-14 00:02:00',
+          last_run: '',
+          status: 'idle'
+        },
+        {
+          id: 'hrmis_checkin',
+          name: 'HRMIS Check-in',
+          enabled: true,
+          cron: '00 02 07 * * 1-5',
+          timezone: 'Asia/Jakarta',
+          start_time: '',
+          end_time: '',
+          next_run: '2026-08-14 00:02:00',
+          last_run: '',
           status: 'idle'
         },
         {
@@ -89,8 +101,32 @@ const fetchTasks = async () => {
           timezone: 'Asia/Jakarta',
           start_time: '',
           end_time: '',
-          next_run: '2026-08-14 09:02:00',
-          last_run: '2026-08-13 09:02:00',
+          next_run: '2026-08-14 02:02:00',
+          last_run: '',
+          status: 'idle'
+        },
+        {
+          id: 'haca_health_12',
+          name: 'HACA Health Check 12:02',
+          enabled: true,
+          cron: '00 02 12 * * 1-7',
+          timezone: 'Asia/Jakarta',
+          start_time: '',
+          end_time: '',
+          next_run: '2026-08-14 05:02:00',
+          last_run: '',
+          status: 'idle'
+        },
+        {
+          id: 'haca_health_15',
+          name: 'HACA Health Check 15:02',
+          enabled: true,
+          cron: '00 02 15 * * 1-7',
+          timezone: 'Asia/Jakarta',
+          start_time: '',
+          end_time: '',
+          next_run: '2026-08-14 08:02:00',
+          last_run: '',
           status: 'idle'
         }
       ]
@@ -181,10 +217,10 @@ const setPresetCron = (expr: string) => {
 }
 
 const getStatusBadge = (status: string, enabled: boolean) => {
-  if (!enabled) return { label: 'Disabled', class: 'bg-base-200 text-base-content/50 border-base-300', dot: 'bg-gray-400' }
-  if (status === 'running') return { label: 'Running', class: 'bg-success/10 text-success border-success/20 animate-pulse', dot: 'bg-success' }
-  if (status === 'outside_window') return { label: 'Outside Hours', class: 'bg-warning/10 text-warning border-warning/20', dot: 'bg-warning' }
-  return { label: 'Active / Idle', class: 'bg-info/10 text-info border-info/20', dot: 'bg-info' }
+  if (!enabled) return { label: 'Disabled', class: 'bg-base-200 text-base-content/50 border-base-300', icon: 'ph-minus-circle' }
+  if (status === 'running') return { label: 'Running', class: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 animate-pulse', icon: 'ph-spinner animate-spin' }
+  if (status === 'outside_window') return { label: 'Outside Hours', class: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30', icon: 'ph-clock-slash' }
+  return { label: 'Active / Idle', class: 'bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30', icon: 'ph-check-circle' }
 }
 
 onMounted(fetchTasks)
@@ -192,364 +228,391 @@ onMounted(fetchTasks)
 
 <template>
   <Navigation title="RENA Scheduler Control Center">
-    <div class="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
+    <div class="space-y-6 pb-12">
       <!-- STATS OVERVIEW -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="stat bg-base-100 shadow-sm rounded-2xl border border-base-200 p-5 transition-all hover:shadow-md">
-          <div class="stat-figure text-primary">
-            <div class="p-3 bg-primary/10 rounded-xl">
+        <!-- Card 1 -->
+        <div class="card bg-base-100 shadow-sm border border-base-200 p-4 transition-all duration-200 hover:shadow-md">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-base-content/60">Total Registered Jobs</p>
+              <h3 class="text-2xl font-bold text-base-content mt-1">{{ tasks.length }}</h3>
+              <p class="text-[11px] text-base-content/50 mt-0.5">RENA Background Crons</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
               <i class="ph ph-clock-afternoon text-2xl"></i>
             </div>
           </div>
-          <div class="stat-title text-xs font-medium text-base-content/70">Total Registered Jobs</div>
-          <div class="stat-value text-2xl font-bold text-primary mt-1">{{ tasks.length }}</div>
-          <div class="stat-desc text-[11px] mt-1">RENA Background Crons</div>
         </div>
 
-        <div class="stat bg-base-100 shadow-sm rounded-2xl border border-base-200 p-5 transition-all hover:shadow-md">
-          <div class="stat-figure text-success">
-            <div class="p-3 bg-success/10 rounded-xl">
+        <!-- Card 2 -->
+        <div class="card bg-base-100 shadow-sm border border-base-200 p-4 transition-all duration-200 hover:shadow-md">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-base-content/60">Active Tasks (ON)</p>
+              <h3 class="text-2xl font-bold text-success mt-1">{{ activeTaskCount }}</h3>
+              <p class="text-[11px] text-base-content/50 mt-0.5">Scheduled for execution</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-success/10 text-success flex items-center justify-center shrink-0">
               <i class="ph ph-check-circle text-2xl"></i>
             </div>
           </div>
-          <div class="stat-title text-xs font-medium text-base-content/70">Active Tasks (ON)</div>
-          <div class="stat-value text-2xl font-bold text-success mt-1">{{ activeTaskCount }}</div>
-          <div class="stat-desc text-[11px] mt-1">Scheduled for execution</div>
         </div>
 
-        <div class="stat bg-base-100 shadow-sm rounded-2xl border border-base-200 p-5 transition-all hover:shadow-md">
-          <div class="stat-figure text-warning">
-            <div class="p-3 bg-warning/10 rounded-xl">
+        <!-- Card 3 -->
+        <div class="card bg-base-100 shadow-sm border border-base-200 p-4 transition-all duration-200 hover:shadow-md">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-base-content/60">Paused Tasks (OFF)</p>
+              <h3 class="text-2xl font-bold text-warning mt-1">{{ pausedTaskCount }}</h3>
+              <p class="text-[11px] text-base-content/50 mt-0.5">Manually disabled</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
               <i class="ph ph-pause-circle text-2xl"></i>
             </div>
           </div>
-          <div class="stat-title text-xs font-medium text-base-content/70">Paused Tasks (OFF)</div>
-          <div class="stat-value text-2xl font-bold text-warning mt-1">{{ pausedTaskCount }}</div>
-          <div class="stat-desc text-[11px] mt-1">Manually disabled</div>
         </div>
 
-        <div class="stat bg-base-100 shadow-sm rounded-2xl border border-base-200 p-5 transition-all hover:shadow-md">
-          <div class="stat-figure text-info">
-            <div class="p-3 bg-info/10 rounded-xl">
+        <!-- Card 4 -->
+        <div class="card bg-base-100 shadow-sm border border-base-200 p-4 transition-all duration-200 hover:shadow-md">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-base-content/60">Drogon IO Status</p>
+              <h3 class="text-xl font-bold text-info mt-1">Non-Blocking</h3>
+              <p class="text-[11px] text-base-content/50 mt-0.5">Worker Thread Pool Enabled</p>
+            </div>
+            <div class="w-12 h-12 rounded-2xl bg-info/10 text-info flex items-center justify-center shrink-0">
               <i class="ph ph-globe-hemisphere-east text-2xl"></i>
             </div>
           </div>
-          <div class="stat-title text-xs font-medium text-base-content/70">Drogon IO Status</div>
-          <div class="stat-value text-xl font-bold text-info mt-1">Non-Blocking</div>
-          <div class="stat-desc text-[11px] mt-1">Worker Thread Pool Enabled</div>
         </div>
       </div>
 
       <!-- CONTROL TOOLBAR & SEARCH -->
-      <div class="card bg-base-100 shadow-sm border border-base-200 rounded-2xl">
-        <div class="card-body p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div class="relative w-full sm:w-80">
+      <div class="card bg-base-100 shadow-sm border border-base-200 p-4">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div class="relative flex-1 max-w-md">
+            <i class="ph ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/50 text-base"></i>
             <input
               v-model="searchQuery"
               type="text"
               placeholder="Search by job ID, name or cron..."
-              class="input input-bordered input-sm sm:input-md w-full pl-10 rounded-xl focus:input-primary text-xs sm:text-sm"
+              class="input input-bordered input-sm w-full pl-10 focus:outline-none focus:border-primary text-xs"
             />
-            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-base-content/50 text-lg"></i>
           </div>
 
-          <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <button @click="fetchTasks" class="btn btn-sm sm:btn-md btn-outline rounded-xl gap-2 hover:btn-primary" :disabled="loading">
-              <i class="ph ph-arrows-clockwise text-base" :class="{ 'animate-spin': loading }"></i>
-              <span>Refresh</span>
+          <div class="flex items-center gap-2 justify-end">
+            <button
+              @click="fetchTasks"
+              class="btn btn-sm btn-outline gap-2 border-base-300 hover:border-primary text-xs font-medium"
+              :disabled="loading"
+            >
+              <i class="ph ph-arrows-clockwise text-sm" :class="{ 'animate-spin': loading }"></i>
+              <span>Refresh Tasks</span>
             </button>
           </div>
         </div>
       </div>
 
       <!-- TASK TABLE CARD -->
-      <div class="card bg-base-100 shadow-sm border border-base-200 rounded-2xl overflow-hidden">
-        <div class="card-body p-5 sm:p-6 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-base-200 pb-4">
-            <div>
-              <h2 class="card-title text-base sm:text-lg font-bold flex items-center gap-2">
-                <i class="ph ph-list-checks text-primary text-xl"></i>
-                RENA Scheduled Background Tasks
-              </h2>
-              <p class="text-xs text-base-content/70 mt-0.5">
-                Manage HRMIS/Jahra attendance & HACA health check execution schedules, timezones, and active time windows.
-              </p>
-            </div>
-          </div>
+      <div class="card bg-base-100 shadow-sm border border-base-200 overflow-hidden">
+        <div class="p-5 border-b border-base-200">
+          <h2 class="card-title text-base font-bold text-base-content">RENA Scheduled Background Tasks</h2>
+          <p class="text-xs text-base-content/60 mt-0.5">
+            Manage HRMIS/Jahra attendance & HACA health check execution schedules, timezones, and active time windows.
+          </p>
+        </div>
 
-          <!-- TABLE LOADING SKELETON -->
-          <div v-if="loading" class="space-y-3 py-4">
-            <div v-for="n in 4" :key="n" class="skeleton h-14 w-full rounded-xl"></div>
-          </div>
+        <!-- TABLE LOADING SKELETON -->
+        <div v-if="loading" class="p-5 space-y-3">
+          <div v-for="n in 3" :key="n" class="skeleton h-14 w-full rounded-xl"></div>
+        </div>
 
-          <!-- TASKS TABLE -->
-          <div v-else-if="filteredTasks.length > 0" class="overflow-x-auto rounded-xl border border-base-200">
-            <table class="table w-full text-xs sm:text-sm min-w-[1050px]">
-              <thead>
-                <tr class="bg-base-200/80 text-base-content/70 text-[11px] uppercase tracking-wider font-semibold border-b border-base-200">
-                  <th class="w-16 text-center py-3">ON/OFF</th>
-                  <th class="min-w-[220px] py-3">Task ID & Name</th>
-                  <th class="min-w-[160px] py-3">Cron Expression</th>
-                  <th class="min-w-[160px] py-3">Region / Timezone</th>
-                  <th class="min-w-[150px] py-3">Active Window</th>
-                  <th class="min-w-[150px] py-3">Last Run</th>
-                  <th class="min-w-[150px] py-3">Next Run</th>
-                  <th class="min-w-[130px] text-center py-3">Status</th>
-                  <th class="min-w-[170px] text-center py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-base-200/60">
-                <tr v-for="task in filteredTasks" :key="task.id" class="hover:bg-base-200/30 transition-colors">
-                  <!-- ON / OFF SWITCH -->
-                  <td class="text-center py-3.5 px-3">
-                    <div class="flex items-center justify-center">
-                      <input
-                        type="checkbox"
-                        class="toggle toggle-success toggle-sm cursor-pointer hover:scale-105 transition-transform"
-                        :checked="task.enabled"
-                        @change="toggleTaskStatus(task)"
-                        title="Toggle ON/OFF"
-                      />
-                    </div>
-                  </td>
+        <!-- TASKS TABLE -->
+        <div v-else-if="filteredTasks.length > 0" class="overflow-x-auto">
+          <table class="table table-zebra w-full text-xs">
+            <thead>
+              <tr class="bg-base-200/60 text-base-content/70 font-semibold text-[11px] uppercase tracking-wider">
+                <th class="w-16 text-center">ON/OFF</th>
+                <th>Task ID & Name</th>
+                <th>Cron Expression</th>
+                <th>Region / Timezone</th>
+                <th>Active Window</th>
+                <th>Last Run</th>
+                <th>Next Run</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-base-200">
+              <tr v-for="task in filteredTasks" :key="task.id" class="hover:bg-base-200/40 transition-colors">
+                <!-- ON / OFF SWITCH -->
+                <td class="text-center py-3">
+                  <input
+                    type="checkbox"
+                    class="toggle toggle-success toggle-sm cursor-pointer"
+                    :checked="task.enabled"
+                    @change="toggleTaskStatus(task)"
+                    title="Toggle ON/OFF"
+                  />
+                </td>
 
-                  <!-- TASK NAME & ID -->
-                  <td class="py-3.5 px-3">
-                    <div class="font-semibold text-xs sm:text-sm text-base-content leading-snug">{{ task.name || task.id }}</div>
-                    <div class="text-[11px] text-base-content/60 font-mono inline-flex items-center gap-1 bg-base-200/70 px-2 py-0.5 rounded-md mt-1 border border-base-300/40">
-                      <i class="ph ph-hash text-primary text-xs"></i> {{ task.id }}
-                    </div>
-                  </td>
+                <!-- TASK NAME & ID -->
+                <td class="py-3">
+                  <div class="font-bold text-sm text-base-content">{{ task.name || task.id }}</div>
+                  <div class="text-[11px] font-mono text-base-content/50 flex items-center gap-1 mt-0.5">
+                    <i class="ph ph-hash text-[10px]"></i>{{ task.id }}
+                  </div>
+                </td>
 
-                  <!-- CRON EXPRESSION -->
-                  <td class="py-3.5 px-3">
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-mono text-xs font-semibold whitespace-nowrap">
-                      <i class="ph ph-timer text-xs"></i> {{ task.cron }}
-                    </div>
-                  </td>
+                <!-- CRON EXPRESSION -->
+                <td class="py-3">
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 font-mono text-xs border border-amber-500/20 whitespace-nowrap shadow-xs">
+                    <i class="ph ph-timer text-amber-600 dark:text-amber-400"></i>
+                    <span>{{ task.cron }}</span>
+                  </div>
+                </td>
 
-                  <!-- TIMEZONE -->
-                  <td class="py-3.5 px-3">
-                    <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-base-200 text-base-content text-xs font-medium border border-base-300/50 whitespace-nowrap">
-                      <i class="ph ph-globe text-secondary text-xs"></i> {{ task.timezone || 'Asia/Jakarta' }}
-                    </div>
-                  </td>
+                <!-- TIMEZONE -->
+                <td class="py-3">
+                  <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-medium text-xs border border-indigo-500/20 whitespace-nowrap">
+                    <i class="ph ph-globe text-indigo-600 dark:text-indigo-400"></i>
+                    <span>{{ task.timezone || 'Asia/Jakarta' }}</span>
+                  </div>
+                </td>
 
-                  <!-- ACTIVE WINDOW -->
-                  <td class="py-3.5 px-3">
-                    <div v-if="task.start_time && task.end_time" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-info/10 text-info border border-info/20 text-xs font-medium whitespace-nowrap">
-                      <i class="ph ph-clock text-xs"></i> {{ task.start_time }} - {{ task.end_time }}
-                    </div>
-                    <div v-else class="inline-flex items-center gap-1 text-xs text-base-content/50 italic bg-base-200/40 px-2.5 py-1 rounded-lg border border-base-200/60 whitespace-nowrap">
-                      <i class="ph ph-infinity text-xs"></i> 24/7 Always Active
-                    </div>
-                  </td>
+                <!-- ACTIVE WINDOW -->
+                <td class="py-3">
+                  <div v-if="task.start_time && task.end_time" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 font-mono text-xs border border-cyan-500/20 whitespace-nowrap">
+                    <i class="ph ph-clock text-cyan-600 dark:text-cyan-400"></i>
+                    <span>{{ task.start_time }} - {{ task.end_time }}</span>
+                  </div>
+                  <div v-else class="text-xs text-base-content/50 italic inline-flex items-center gap-1 whitespace-nowrap">
+                    <i class="ph ph-infinity text-xs"></i> 24/7 Always Active
+                  </div>
+                </td>
 
-                  <!-- LAST RUN -->
-                  <td class="py-3.5 px-3 whitespace-nowrap font-mono text-xs text-base-content/70">
-                    {{ task.last_run || '-' }}
-                  </td>
+                <!-- LAST RUN -->
+                <td class="py-3 whitespace-nowrap font-mono text-xs text-base-content/70">
+                  <span v-if="task.last_run" class="flex items-center gap-1">
+                    <i class="ph ph-clock-counter-clockwise text-xs text-base-content/40"></i>
+                    {{ task.last_run }}
+                  </span>
+                  <span v-else class="text-base-content/40">-</span>
+                </td>
 
-                  <!-- NEXT RUN -->
-                  <td class="py-3.5 px-3 whitespace-nowrap font-mono text-xs text-primary font-semibold">
-                    <div class="inline-flex items-center gap-1">
-                      <i class="ph ph-calendar-blank text-xs"></i> {{ task.next_run || '-' }}
-                    </div>
-                  </td>
+                <!-- NEXT RUN -->
+                <td class="py-3 whitespace-nowrap font-mono text-xs text-primary font-semibold">
+                  <span v-if="task.next_run" class="flex items-center gap-1">
+                    <i class="ph ph-calendar-check text-xs text-primary/70"></i>
+                    {{ task.next_run }}
+                  </span>
+                  <span v-else class="text-base-content/40">-</span>
+                </td>
 
-                  <!-- STATUS -->
-                  <td class="text-center py-3.5 px-3">
-                    <div
-                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap"
-                      :class="getStatusBadge(task.status, task.enabled).class"
+                <!-- STATUS -->
+                <td class="py-3">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap" :class="getStatusBadge(task.status, task.enabled).class">
+                    <i class="ph text-xs" :class="getStatusBadge(task.status, task.enabled).icon"></i>
+                    {{ getStatusBadge(task.status, task.enabled).label }}
+                  </span>
+                </td>
+
+                <!-- ACTIONS -->
+                <td class="py-3 text-center">
+                  <div class="flex items-center justify-center gap-2 whitespace-nowrap">
+                    <button
+                      @click="triggerTaskNow(task)"
+                      class="btn btn-xs btn-outline btn-success gap-1 text-xs font-semibold hover:text-white transition-all shadow-xs"
+                      :disabled="runningTaskId === task.id"
+                      title="Run immediately"
                     >
-                      <span class="w-1.5 h-1.5 rounded-full" :class="getStatusBadge(task.status, task.enabled).dot"></span>
-                      {{ getStatusBadge(task.status, task.enabled).label }}
-                    </div>
-                  </td>
+                      <i class="ph ph-play-circle text-sm" :class="{ 'animate-spin': runningTaskId === task.id }"></i>
+                      Run Now
+                    </button>
 
-                  <!-- ACTIONS -->
-                  <td class="text-center py-3.5 px-3">
-                    <div class="inline-flex items-center justify-center gap-2 whitespace-nowrap">
-                      <button
-                        @click="triggerTaskNow(task)"
-                        class="btn btn-xs sm:btn-sm btn-outline btn-success rounded-lg gap-1.5 hover:shadow-sm"
-                        :disabled="runningTaskId === task.id"
-                        title="Run immediately"
-                      >
-                        <i class="ph ph-play-circle text-sm" :class="{ 'animate-spin': runningTaskId === task.id }"></i>
-                        <span>Run Now</span>
-                      </button>
+                    <button
+                      @click="openEditModal(task)"
+                      class="btn btn-xs btn-primary gap-1 text-xs font-semibold shadow-xs"
+                      title="Configure schedule"
+                    >
+                      <i class="ph ph-gear text-sm"></i>
+                      Config
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-                      <button
-                        @click="openEditModal(task)"
-                        class="btn btn-xs sm:btn-sm btn-primary rounded-lg gap-1.5 hover:shadow-sm"
-                        title="Configure schedule"
-                      >
-                        <i class="ph ph-gear text-sm"></i>
-                        <span>Config</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- EMPTY STATE -->
-          <div v-else class="text-center py-12 text-base-content/50 bg-base-200/20 rounded-xl border border-dashed border-base-300">
-            <i class="ph ph-clock text-4xl mb-2 text-base-content/30"></i>
-            <p class="font-semibold text-sm">No Scheduler Tasks Found</p>
-            <p class="text-xs text-base-content/60 mt-0.5">Register tasks in backend schedule::task() or adjust your search query.</p>
-          </div>
+        <!-- EMPTY STATE -->
+        <div v-else class="text-center py-16 text-base-content/50">
+          <i class="ph ph-clock-slash text-5xl mb-3 text-base-content/30"></i>
+          <p class="font-bold text-base text-base-content/80">No Scheduler Tasks Found</p>
+          <p class="text-xs text-base-content/50 mt-1 max-w-sm mx-auto">
+            No matching tasks found. Try adjusting your search query or register new tasks in the backend schedule.
+          </p>
         </div>
       </div>
+    </div>
 
-      <!-- CONFIG EDIT MODAL -->
-      <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-        <div class="bg-base-100 max-w-lg w-full p-6 rounded-2xl shadow-2xl border border-base-200 relative max-h-[90vh] overflow-y-auto space-y-5">
-          <!-- MODAL HEADER -->
-          <div class="flex items-start justify-between border-b border-base-200 pb-4">
-            <div class="flex items-center gap-3">
-              <div class="p-2.5 bg-primary/10 text-primary rounded-xl">
-                <i class="ph ph-sliders text-xl"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-base sm:text-lg text-base-content">Configure Task Scheduler</h3>
-                <p class="text-xs text-base-content/60 mt-0.5">
-                  Task: <span class="font-mono font-semibold text-primary">{{ selectedTask?.name || selectedTask?.id }}</span>
-                </p>
-              </div>
+    <!-- CONFIG EDIT MODAL -->
+    <div v-if="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+      <div class="bg-base-100 rounded-2xl shadow-2xl border border-base-200 w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-5 border-b border-base-200 bg-base-200/40">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <i class="ph ph-sliders text-xl"></i>
             </div>
-            <button @click="closeModal" class="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content">
-              <i class="ph ph-x text-lg"></i>
-            </button>
-          </div>
-
-          <form @submit.prevent="saveTaskConfig" class="space-y-4">
-            <!-- ENABLED SWITCH (SPACIOUS & RESPONSIVE) -->
-            <label class="flex items-center justify-between p-4 bg-base-200/60 hover:bg-base-200/90 rounded-xl border border-base-300/60 cursor-pointer transition-colors select-none">
-              <div class="flex flex-col gap-0.5">
-                <span class="font-semibold text-sm text-base-content">Enable Scheduler Task</span>
-                <span class="text-xs text-base-content/60">Toggle automated execution for this cron job</span>
-              </div>
-              <input type="checkbox" class="toggle toggle-success toggle-md shrink-0 ml-4 cursor-pointer" v-model="form.enabled" />
-            </label>
-
-            <!-- TIMEZONE SELECT -->
-            <div class="form-control space-y-1.5">
-              <label class="label p-0">
-                <span class="label-text font-semibold text-xs text-base-content/80 flex items-center gap-1.5">
-                  <i class="ph ph-globe text-secondary text-sm"></i> Region / Timezone
-                </span>
-              </label>
-              <select v-model="form.timezone" class="select select-bordered select-sm sm:select-md w-full rounded-xl focus:select-primary text-xs sm:text-sm">
-                <option v-for="tz in timezoneOptions" :key="tz.value" :value="tz.value">
-                  {{ tz.label }}
-                </option>
-              </select>
-            </div>
-
-            <!-- CRON EXPRESSION & PRESETS -->
-            <div class="form-control space-y-1.5">
-              <label class="label p-0">
-                <span class="label-text font-semibold text-xs text-base-content/80 flex items-center gap-1.5">
-                  <i class="ph ph-timer text-warning text-sm"></i> Cron Expression (5 or 6 fields)
-                </span>
-              </label>
-              <input
-                v-model="form.cron"
-                type="text"
-                class="input input-bordered input-sm sm:input-md font-mono w-full rounded-xl focus:input-primary text-xs sm:text-sm"
-                placeholder="e.g. 00 02 07 * * 1-5"
-                required
-              />
-              <div class="pt-1">
-                <span class="text-[11px] font-medium text-base-content/60 mb-1.5 block">Quick Presets:</span>
-                <div class="flex flex-wrap gap-1.5">
-                  <button
-                    type="button"
-                    @click="setPresetCron('*/5 * * * * *')"
-                    class="btn btn-xs btn-outline rounded-lg font-mono text-[11px] hover:btn-primary"
-                  >
-                    Every 5s
-                  </button>
-                  <button
-                    type="button"
-                    @click="setPresetCron('0 * * * * *')"
-                    class="btn btn-xs btn-outline rounded-lg font-mono text-[11px] hover:btn-primary"
-                  >
-                    Every 1m
-                  </button>
-                  <button
-                    type="button"
-                    @click="setPresetCron('0 0 * * * *')"
-                    class="btn btn-xs btn-outline rounded-lg font-mono text-[11px] hover:btn-primary"
-                  >
-                    Hourly
-                  </button>
-                  <button
-                    type="button"
-                    @click="setPresetCron('00 02 07 * * 1-5')"
-                    class="btn btn-xs btn-outline rounded-lg font-mono text-[11px] hover:btn-primary"
-                  >
-                    Checkin 07:02
-                  </button>
-                  <button
-                    type="button"
-                    @click="setPresetCron('50 52 17 * * 1-5')"
-                    class="btn btn-xs btn-outline rounded-lg font-mono text-[11px] hover:btn-primary"
-                  >
-                    Checkout 17:52
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- OPERATING HOURS WINDOW -->
-            <div class="border border-base-200 rounded-xl p-4 bg-base-200/40 space-y-3">
-              <label class="label p-0">
-                <span class="label-text font-semibold text-xs text-base-content/80 flex items-center gap-1.5">
-                  <i class="ph ph-clock text-accent text-sm"></i> Operational Hours Window (Optional)
-                </span>
-              </label>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="space-y-1">
-                  <span class="text-[11px] font-medium text-base-content/60">Start Time (HH:mm)</span>
-                  <input
-                    v-model="form.start_time"
-                    type="time"
-                    class="input input-bordered input-sm w-full font-mono rounded-lg text-xs"
-                    placeholder="08:00"
-                  />
-                </div>
-                <div class="space-y-1">
-                  <span class="text-[11px] font-medium text-base-content/60">End Time (HH:mm)</span>
-                  <input
-                    v-model="form.end_time"
-                    type="time"
-                    class="input input-bordered input-sm w-full font-mono rounded-lg text-xs"
-                    placeholder="17:00"
-                  />
-                </div>
-              </div>
-              <p class="text-[11px] text-base-content/50 italic">
-                Leave blank to run 24 hours a day without operational hour restriction.
+            <div>
+              <h3 class="font-bold text-base text-base-content">Configure Task Scheduler</h3>
+              <p class="text-xs text-base-content/60 mt-0.5">
+                Adjust schedule timing, operating hours, and regional timezone for <span class="font-mono font-semibold text-primary">{{ selectedTask?.name || selectedTask?.id }}</span>
               </p>
             </div>
+          </div>
+          <button @click="closeModal" class="btn btn-sm btn-circle btn-ghost text-base-content/60 hover:text-base-content">
+            <i class="ph ph-x text-lg"></i>
+          </button>
+        </div>
 
-            <!-- MODAL ACTIONS -->
-            <div class="pt-3 border-t border-base-200 flex justify-end gap-2">
-              <button type="button" @click="closeModal" class="btn btn-sm sm:btn-md btn-ghost rounded-xl">
-                Cancel
+        <!-- Modal Body -->
+        <form @submit.prevent="saveTaskConfig" class="p-5 space-y-4">
+          <!-- ENABLED SWITCH (Responsive & Spaced Out) -->
+          <div 
+            @click="form.enabled = !form.enabled"
+            class="flex items-center justify-between p-3.5 bg-base-200/70 hover:bg-base-200 border border-base-300/60 rounded-xl cursor-pointer transition-all duration-150 select-none"
+          >
+            <div class="flex items-center gap-3">
+              <div 
+                class="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+                :class="form.enabled ? 'bg-success/15 text-success' : 'bg-base-300 text-base-content/50'"
+              >
+                <i class="ph text-lg" :class="form.enabled ? 'ph-power' : 'ph-power-off'"></i>
+              </div>
+              <div>
+                <span class="block text-xs font-semibold text-base-content">Enable Scheduler Task</span>
+                <span class="block text-[11px] text-base-content/60">
+                  {{ form.enabled ? 'Task is currently active and running' : 'Task is paused automatically' }}
+                </span>
+              </div>
+            </div>
+            <input 
+              type="checkbox" 
+              class="toggle toggle-success toggle-md pointer-events-none ml-4" 
+              :checked="form.enabled" 
+            />
+          </div>
+
+          <!-- TIMEZONE SELECT -->
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-base-content/80 flex items-center gap-1.5">
+              <i class="ph ph-globe text-secondary text-sm"></i> Region / Timezone
+            </label>
+            <select v-model="form.timezone" class="select select-bordered select-sm w-full text-xs focus:outline-none focus:border-primary">
+              <option v-for="tz in timezoneOptions" :key="tz.value" :value="tz.value">
+                {{ tz.label }}
+              </option>
+            </select>
+          </div>
+
+          <!-- CRON EXPRESSION & PRESETS -->
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-base-content/80 flex items-center gap-1.5">
+              <i class="ph ph-timer text-warning text-sm"></i> Cron Expression (5 or 6 fields)
+            </label>
+            <input
+              v-model="form.cron"
+              type="text"
+              class="input input-bordered input-sm w-full font-mono text-xs focus:outline-none focus:border-primary"
+              placeholder="e.g. 00 02 07 * * 1-5"
+              required
+            />
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <button
+                type="button"
+                @click="setPresetCron('*/5 * * * * *')"
+                class="btn btn-xs rounded-lg border text-[11px] transition-all"
+                :class="form.cron === '*/5 * * * * *' ? 'btn-primary' : 'btn-ghost bg-base-200/80 border-base-300 hover:bg-base-300'"
+              >
+                Every 5s
               </button>
-              <button type="submit" class="btn btn-sm sm:btn-md btn-primary rounded-xl gap-2" :disabled="saving">
-                <i class="ph ph-floppy-disk text-base" :class="{ 'animate-spin': saving }"></i>
-                <span>Save Configuration</span>
+              <button
+                type="button"
+                @click="setPresetCron('0 * * * * *')"
+                class="btn btn-xs rounded-lg border text-[11px] transition-all"
+                :class="form.cron === '0 * * * * *' ? 'btn-primary' : 'btn-ghost bg-base-200/80 border-base-300 hover:bg-base-300'"
+              >
+                Every 1 min
+              </button>
+              <button
+                type="button"
+                @click="setPresetCron('0 0 * * * *')"
+                class="btn btn-xs rounded-lg border text-[11px] transition-all"
+                :class="form.cron === '0 0 * * * *' ? 'btn-primary' : 'btn-ghost bg-base-200/80 border-base-300 hover:bg-base-300'"
+              >
+                Hourly
+              </button>
+              <button
+                type="button"
+                @click="setPresetCron('00 02 07 * * 1-5')"
+                class="btn btn-xs rounded-lg border text-[11px] transition-all"
+                :class="form.cron === '00 02 07 * * 1-5' ? 'btn-primary' : 'btn-ghost bg-base-200/80 border-base-300 hover:bg-base-300'"
+              >
+                Checkin 07:02
+              </button>
+              <button
+                type="button"
+                @click="setPresetCron('50 52 17 * * 1-5')"
+                class="btn btn-xs rounded-lg border text-[11px] transition-all"
+                :class="form.cron === '50 52 17 * * 1-5' ? 'btn-primary' : 'btn-ghost bg-base-200/80 border-base-300 hover:bg-base-300'"
+              >
+                Checkout 17:52
               </button>
             </div>
-          </form>
-        </div>
+          </div>
+
+          <!-- OPERATING HOURS WINDOW -->
+          <div class="border border-base-200 rounded-xl p-3.5 bg-base-200/40 space-y-2">
+            <label class="block text-xs font-semibold text-base-content/80 flex items-center gap-1.5">
+              <i class="ph ph-clock text-accent text-sm"></i> Operational Hours Window (Optional)
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="block text-[10px] font-medium text-base-content/60 mb-1">Start Time (HH:mm)</span>
+                <input
+                  v-model="form.start_time"
+                  type="time"
+                  class="input input-bordered input-sm w-full font-mono text-xs focus:outline-none focus:border-primary"
+                  placeholder="08:00"
+                />
+              </div>
+              <div>
+                <span class="block text-[10px] font-medium text-base-content/60 mb-1">End Time (HH:mm)</span>
+                <input
+                  v-model="form.end_time"
+                  type="time"
+                  class="input input-bordered input-sm w-full font-mono text-xs focus:outline-none focus:border-primary"
+                  placeholder="17:00"
+                />
+              </div>
+            </div>
+            <p class="text-[10px] text-base-content/50">
+              Leave blank to run 24 hours a day without operational hour restriction.
+            </p>
+          </div>
+
+          <!-- MODAL ACTIONS -->
+          <div class="flex items-center justify-end gap-2 pt-3 border-t border-base-200 mt-5">
+            <button type="button" @click="closeModal" class="btn btn-sm btn-ghost text-xs">Cancel</button>
+            <button type="submit" class="btn btn-sm btn-primary gap-2 text-xs font-medium" :disabled="saving">
+              <i class="ph ph-floppy-disk text-sm" :class="{ 'animate-spin': saving }"></i>
+              Save Configuration
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </Navigation>
