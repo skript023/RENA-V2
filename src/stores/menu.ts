@@ -25,6 +25,11 @@ export const useMenuStore = defineStore('menu', {
                 route: '/config'
             },
             {
+                label: 'Scheduler Control',
+                icon: 'ph ph-clock-afternoon',
+                route: '/scheduler'
+            },
+            {
                 label: 'Cookies Manager',
                 icon: 'ph ph-kanban',
                 route: '/cookies'

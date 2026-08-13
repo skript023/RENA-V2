@@ -8,6 +8,7 @@ import Configs from '@/modules/configs/configs.vue'
 import Logs from '@/modules/log/Logs.vue'
 import NotFound from '@/components/NotFound.vue'
 import Activity from '@/modules/activity/activity.vue'
+import SchedulerManager from '@/modules/scheduler/SchedulerManager.vue'
 
 const routes = [
   { 
@@ -57,6 +58,12 @@ const routes = [
     name: 'Job Configuration',
     meta: { requiresAuth: true },
     component: Configs
+  },
+  { 
+    path: '/scheduler', 
+    name: 'Scheduler Manager',
+    meta: { requiresAuth: true },
+    component: SchedulerManager
   },
   {
     path: "/:pathMatch(.*)*",
