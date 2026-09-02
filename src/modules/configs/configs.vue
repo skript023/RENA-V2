@@ -7,13 +7,14 @@ import type { MusicCommand, SaveJsonCommand, VideoCommand } from './dto/configs.
 
 const { notify } = useNotification()
 
-const categories = ref<("music" | "video" | "dump_json")[]>([
+const categories = ref<("music" | "video" | "dump_json" | "haca")[]>([
     "music",
     "video",
-    "dump_json"
+    "dump_json",
+    "haca"
 ])
 
-const selectedCategory = ref<"music" | "video" | "dump_json">("music")
+const selectedCategory = ref<"music" | "video" | "dump_json" | "haca">("music")
 
 const configText = ref("")
 const loading = ref(false)
@@ -29,18 +30,24 @@ const loadConfig = async () => {
         {
             case "music":
                 res = await configs.get_config<MusicCommand>("download", "music")
+                configText.value = JSON.stringify(res.data, null, 2)
                 break
 
             case "video":
                 res = await configs.get_config<VideoCommand>("download", "video")
+                configText.value = JSON.stringify(res.data, null, 2)
                 break
 
             case "dump_json":
                 res = await configs.get_config<SaveJsonCommand>("dump_json")
+                configText.value = JSON.stringify(res.data, null, 2)
+                break
+
+            case "haca":
+                res = await configs.get_system_config("HACA_SERVICE_URL")
+                configText.value = typeof res.data === "object" ? JSON.stringify(res.data, null, 2) : res.data
                 break
         }
-
-        configText.value = JSON.stringify(res.data, null, 2)
     }
     catch (e: any)
     {
@@ -53,6 +60,27 @@ const loadConfig = async () => {
 const saveConfig = async () => {
     try 
     {
+        if (selectedCategory.value === "haca")
+        {
+            let url = configText.value.trim()
+            try
+            {
+                const parsedObj = JSON.parse(configText.value)
+                if (parsedObj && parsedObj.value)
+                {
+                    url = parsedObj.value
+                }
+            }
+            catch (_)
+            {
+                // Raw text fallback
+            }
+
+            await configs.update_system_config("HACA_SERVICE_URL", url)
+            notify("HACA Service URL updated successfully!", "success")
+            return
+        }
+
         const parsed = JSON.parse(configText.value)
 
         if (selectedCategory.value === "dump_json")

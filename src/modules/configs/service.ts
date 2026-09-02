@@ -44,4 +44,43 @@ export default class configs
             return error.response.data;
         }
     }
+
+    static async get_system_config<T = any>(key?: string): Promise<ServerResponse<T>>
+    {
+        try 
+        {
+            const response = await http.get(`/system/config`, 
+            {
+                params: { key },
+                headers: {
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
+                }
+            });
+
+            return response.data;
+        }
+        catch (error: any)
+        {
+            return error.response?.data;
+        }
+    }
+
+    static async update_system_config(key: string, value: string): Promise<ServerResponse<any>>
+    {
+        try 
+        {
+            const response = await http.put(`/system/config`, { key, value }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
+                },
+            });
+            
+            return response.data;
+        }
+        catch (error: any)
+        {
+            return error.response?.data;
+        }
+    }
 }
