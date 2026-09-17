@@ -8,6 +8,7 @@ import Configs from '@/modules/configs/configs.vue'
 import Logs from '@/modules/log/Logs.vue'
 import NotFound from '@/components/NotFound.vue'
 import Activity from '@/modules/activity/activity.vue'
+import Attendance from '@/modules/attendance/Attendance.vue'
 
 const routes = [
   { 
@@ -51,6 +52,12 @@ const routes = [
     name: 'Activity',
     meta: { requiresAuth: true },
     component: Activity 
+  },
+  { 
+    path: '/attendance', 
+    name: 'Attendance',
+    meta: { requiresAuth: true },
+    component: Attendance 
   },
   { 
     path: '/config', 
