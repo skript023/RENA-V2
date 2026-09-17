@@ -31,6 +31,13 @@ const routes = [
   //   component: Activity 
   // },
   {
+    path: '/scheduler',
+    name: 'Scheduler Manager',
+    meta: { requiresAuth: true },
+    component: SchedulerManager
+  },
+
+  {
     path: '/ticket',
     name: 'Ticket',
     meta: { requiresAuth: true },
