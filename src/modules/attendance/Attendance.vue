@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import Navigation from '@/components/Navigation.vue'
+import LocationMapModal from './components/LocationMapModal.vue'
 import { useNotification } from '@/composables/useNotification'
 import attendanceService from './service'
 import type { AttendanceSettings } from './dto/attendance.dto'
@@ -10,6 +11,44 @@ const { notify } = useNotification()
 const loading = ref(false)
 const saving = ref(false)
 const gettingGps = ref<'wfh' | 'wfo' | null>(null)
+
+const mapModalState = ref({
+    isOpen: false,
+    title: '',
+    type: 'wfh' as 'wfh' | 'wfo',
+    latitude: '',
+    longitude: ''
+})
+
+const openMapModal = (target: 'wfh' | 'wfo') => {
+    if (target === 'wfh') {
+        mapModalState.value = {
+            isOpen: true,
+            title: 'Lokasi WFH (Rumah)',
+            type: 'wfh',
+            latitude: form.value.wfh_latitude,
+            longitude: form.value.wfh_longitude
+        }
+    } else {
+        mapModalState.value = {
+            isOpen: true,
+            title: 'Lokasi WFO (Kantor)',
+            type: 'wfo',
+            latitude: form.value.wfo_latitude,
+            longitude: form.value.wfo_longitude
+        }
+    }
+}
+
+const onApplyMapCoords = (coords: { latitude: string, longitude: string }) => {
+    if (mapModalState.value.type === 'wfh') {
+        form.value.wfh_latitude = coords.latitude
+        form.value.wfh_longitude = coords.longitude
+    } else {
+        form.value.wfo_latitude = coords.latitude
+        form.value.wfo_longitude = coords.longitude
+    }
+}
 
 const form = ref<AttendanceSettings>({
     wfh_latitude: '-6.2297907',
@@ -186,17 +225,32 @@ onMounted(loadSettings)
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 pt-4 border-t border-base-200 text-xs">
-                        <div class="bg-base-200/50 p-2.5 rounded-lg">
-                            <span class="text-base-content/60 block">Latitude Payload:</span>
-                            <span class="font-mono font-semibold">{{ activeCoordinates.lat }}</span>
+                        <div class="bg-base-200/50 p-2.5 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="text-base-content/60 block">Latitude Payload:</span>
+                                <span class="font-mono font-semibold">{{ activeCoordinates.lat }}</span>
+                            </div>
                         </div>
-                        <div class="bg-base-200/50 p-2.5 rounded-lg">
-                            <span class="text-base-content/60 block">Longitude Payload:</span>
-                            <span class="font-mono font-semibold">{{ activeCoordinates.long }}</span>
+                        <div class="bg-base-200/50 p-2.5 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="text-base-content/60 block">Longitude Payload:</span>
+                                <span class="font-mono font-semibold">{{ activeCoordinates.long }}</span>
+                            </div>
                         </div>
-                        <div class="bg-base-200/50 p-2.5 rounded-lg">
-                            <span class="text-base-content/60 block">Flag Location:</span>
-                            <span class="font-mono font-semibold">{{ activeCoordinates.flag }}</span>
+                        <div class="bg-base-200/50 p-2.5 rounded-lg flex items-center justify-between">
+                            <div>
+                                <span class="text-base-content/60 block">Flag Location:</span>
+                                <span class="font-mono font-semibold">{{ activeCoordinates.flag }}</span>
+                            </div>
+                            <button 
+                                type="button"
+                                class="btn btn-xs btn-outline btn-primary flex items-center gap-1 shadow-2xs"
+                                @click="openMapModal(resolvedTodayMode === 'WFH' ? 'wfh' : 'wfo')"
+                                title="Lihat dan cek titik lokasi hari ini di peta"
+                            >
+                                <i class="ph ph-map-pin"></i>
+                                Cek di Map
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -288,16 +342,27 @@ onMounted(loadSettings)
                                 <i class="ph ph-house-line text-lg"></i>
                                 Lokasi WFH (Rumah)
                             </h3>
-                            <button 
-                                type="button"
-                                class="btn btn-xs btn-outline btn-success flex items-center gap-1"
-                                :disabled="gettingGps === 'wfh'"
-                                @click="getCurrentLocation('wfh')"
-                            >
-                                <span v-if="gettingGps === 'wfh'" class="loading loading-spinner loading-xs"></span>
-                                <i v-else class="ph ph-crosshair"></i>
-                                Ambil GPS Saya
-                            </button>
+                            <div class="flex items-center gap-1.5">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-xs btn-outline btn-success flex items-center gap-1"
+                                    @click="openMapModal('wfh')"
+                                    title="Cek & sesuaikan lokasi WFH pada peta"
+                                >
+                                    <i class="ph ph-map-pin"></i>
+                                    Cek Map
+                                </button>
+                                <button 
+                                    type="button"
+                                    class="btn btn-xs btn-outline btn-success flex items-center gap-1"
+                                    :disabled="gettingGps === 'wfh'"
+                                    @click="getCurrentLocation('wfh')"
+                                >
+                                    <span v-if="gettingGps === 'wfh'" class="loading loading-spinner loading-xs"></span>
+                                    <i v-else class="ph ph-crosshair"></i>
+                                    Ambil GPS
+                                </button>
+                            </div>
                         </div>
 
                         <p class="text-[11px] text-base-content/60">
@@ -335,7 +400,16 @@ onMounted(loadSettings)
                                 <i class="ph ph-buildings text-lg"></i>
                                 Lokasi WFO (Kantor)
                             </h3>
-                            <div class="flex gap-1.5">
+                            <div class="flex items-center gap-1.5">
+                                <button 
+                                    type="button" 
+                                    class="btn btn-xs btn-outline btn-info flex items-center gap-1"
+                                    @click="openMapModal('wfo')"
+                                    title="Cek & sesuaikan lokasi WFO pada peta"
+                                >
+                                    <i class="ph ph-map-pin"></i>
+                                    Cek Map
+                                </button>
                                 <button 
                                     type="button"
                                     class="btn btn-xs btn-ghost text-base-content/60 hover:text-base-content"
@@ -407,6 +481,16 @@ onMounted(loadSettings)
                 </button>
             </div>
         </div>
+
+        <!-- Modal Map Cek & Sesuaikan Koordinat -->
+        <LocationMapModal
+            v-model:is-open="mapModalState.isOpen"
+            :title="mapModalState.title"
+            :type="mapModalState.type"
+            :latitude="mapModalState.latitude"
+            :longitude="mapModalState.longitude"
+            @apply="onApplyMapCoords"
+        />
     </Navigation>
 </template>
 
