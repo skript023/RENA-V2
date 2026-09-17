@@ -15,6 +15,33 @@
         "
         @submit="submitForm"
     />
+    <dialog id="export_modal" class="modal" :class="{ 'modal-open': showExportModal }">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Export Activity Logs</h3>
+            <p class="py-2 text-sm opacity-70">Pilih rentang tanggal activity yang ingin diexport:</p>
+            
+            <div class="form-control w-full my-2">
+                <label class="label"><span class="label-text font-medium">Tanggal Mulai (Start Date)</span></label>
+                <input type="date" v-model="exportStartDate" class="input input-bordered w-full" />
+            </div>
+
+            <div class="form-control w-full my-2">
+                <label class="label"><span class="label-text font-medium font-medium">Tanggal Selesai (End Date)</span></label>
+                <input type="date" v-model="exportEndDate" class="input input-bordered w-full" />
+            </div>
+
+            <div class="modal-action">
+                <button class="btn btn-ghost" @click="showExportModal = false">Batal</button>
+                <button class="btn btn-primary" :disabled="exportLoading" @click="handleExport">
+                    <span v-if="exportLoading" class="loading loading-spinner loading-xs"></span>
+                    Download Export
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="showExportModal = false">close</button>
+        </form>
+    </dialog>
     <Navigation title="Activity">
         <DataTable
             title="Activity Logs"
@@ -29,7 +56,7 @@
             @refresh="refresh"
             @update:search="search = $event"
             @add="createTask"
-            @export="exportExcel"
+            @export="openExportModal"
             @filter="onFilter"
             @sort="onSort"
             @selection-change="selectedRows = $event"
@@ -144,6 +171,11 @@ const { notify } = useNotification();
 const selectedRows = ref<any[]>([]);
 
 const filters = ref<Record<string, string>>({});
+
+const showExportModal = ref(false);
+const exportStartDate = ref(moment().startOf('month').format('YYYY-MM-DD'));
+const exportEndDate = ref(moment().format('YYYY-MM-DD'));
+const exportLoading = ref(false);
 
 const sortColumn = ref('');
 const sortDirection = ref<'asc' | 'desc'>('desc');
@@ -463,41 +495,49 @@ function createTask()
     formModal.value.open();
 }
 
-async function exportExcel()
+function openExportModal()
+{
+    showExportModal.value = true;
+}
+
+async function handleExport()
 {
     try {
-        // Pastikan API call menggunakan responseType: 'blob' jika pakai Axios
-        const response = await activity.export('csv');
+        exportLoading.value = true;
 
-        // 1. Buat Blob dari data response
+        const response = await activity.export(
+            'csv',
+            exportStartDate.value,
+            exportEndDate.value
+        );
+
         const blob = new Blob([response.data], { type: 'text/csv' });
         
-        // 2. Ambil nama file dari header 'Content-Disposition' jika ada, atau buat fallback
-        let fileName = 'tasks_export.csv';
-        const disposition = response.headers['content-disposition'];
+        let fileName = `tasks_export_${exportStartDate.value}_to_${exportEndDate.value}.csv`;
+        const disposition = response.headers?.['content-disposition'];
         if (disposition && disposition.includes('filename=')) {
             const matches = /filename="?([^";]+)"?/.exec(disposition);
             if (matches && matches[1]) fileName = matches[1];
         }
 
-        // 3. Buat URL temporary dari Blob
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', fileName);
         
-        // 4. Trigger click secara tersembunyi
         document.body.appendChild(link);
         link.click();
         
-        // 5. Cleanup
         link.parentNode?.removeChild(link);
         window.URL.revokeObjectURL(url);
 
         notify("Task exported!", "success");
+        showExportModal.value = false;
     } catch (err) {
         console.error(err);
         notify("Failed to export task", "error");
+    } finally {
+        exportLoading.value = false;
     }
 }
 

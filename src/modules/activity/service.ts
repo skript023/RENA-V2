@@ -95,16 +95,20 @@ export default class activity
             return error.response.data;
         }
     }
-    static async export(format: string)
+    static async export(format: string, startDate?: string, endDate?: string)
     {
         try 
         {
             const response = await http.get(`tasks/export`, { 
-                params: { "format": format },
+                params: { 
+                    "format": format,
+                    ...(startDate && { "startDate": startDate }),
+                    ...(endDate && { "endDate": endDate })
+                },
                 headers: {
-                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${authentication.getRawData('ACCESS_TOKEN')}`
-                }
+                },
+                responseType: 'blob'
             });
 
             return response;

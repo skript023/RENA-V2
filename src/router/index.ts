@@ -9,19 +9,20 @@ import Logs from '@/modules/log/Logs.vue'
 import NotFound from '@/components/NotFound.vue'
 import Activity from '@/modules/activity/activity.vue'
 import Attendance from '@/modules/attendance/Attendance.vue'
+import SchedulerManager from '@/modules/scheduler/SchedulerManager.vue'
 
 const routes = [
-  { 
-    path: '/', 
+  {
+    path: '/',
     name: "home",
     meta: { guestOnly: true },
-    component: Login 
+    component: Login
   },
-  { 
-    path: '/dashboard', 
+  {
+    path: '/dashboard',
     name: 'Dashboard',
     meta: { requiresAuth: true },
-    component: Home 
+    component: Home
   },
   // { 
   //   path: '/user/activity', 
@@ -29,38 +30,38 @@ const routes = [
   //   meta: { requiresAuth: true },
   //   component: Activity 
   // },
-  { 
-    path: '/ticket', 
+  {
+    path: '/ticket',
     name: 'Ticket',
     meta: { requiresAuth: true },
-    component: Tiket 
+    component: Tiket
   },
-  { 
-    path: '/system', 
+  {
+    path: '/system',
     name: 'System',
     meta: { requiresAuth: true },
-    component: System 
+    component: System
   },
-  { 
-    path: '/logs', 
+  {
+    path: '/logs',
     name: 'Logs',
     meta: { requiresAuth: true },
-    component: Logs 
+    component: Logs
   },
-  { 
-    path: '/activity', 
+  {
+    path: '/activity',
     name: 'Activity',
     meta: { requiresAuth: true },
-    component: Activity 
+    component: Activity
   },
-  { 
-    path: '/attendance', 
+  {
+    path: '/attendance',
     name: 'Attendance',
     meta: { requiresAuth: true },
-    component: Attendance 
+    component: Attendance
   },
-  { 
-    path: '/config', 
+  {
+    path: '/config',
     name: 'Job Configuration',
     meta: { requiresAuth: true },
     component: Configs
