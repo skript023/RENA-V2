@@ -42,6 +42,33 @@
             <button @click="showExportModal = false">close</button>
         </form>
     </dialog>
+    <dialog id="sync_task_report_modal" class="modal" :class="{ 'modal-open': showSyncModal }">
+        <div class="modal-box">
+            <h3 class="font-bold text-lg">Sync ke Task Report</h3>
+            <p class="py-2 text-sm opacity-70">Pilih rentang tanggal activity yang ingin disinkronkan ke Task Report:</p>
+            
+            <div class="form-control w-full my-2">
+                <label class="label"><span class="label-text font-medium">Tanggal Mulai (Start Date)</span></label>
+                <input type="date" v-model="syncStartDate" class="input input-bordered w-full" />
+            </div>
+
+            <div class="form-control w-full my-2">
+                <label class="label"><span class="label-text font-medium">Tanggal Selesai (End Date)</span></label>
+                <input type="date" v-model="syncEndDate" class="input input-bordered w-full" />
+            </div>
+
+            <div class="modal-action">
+                <button class="btn btn-ghost" @click="showSyncModal = false">Batal</button>
+                <button class="btn btn-primary" :disabled="syncLoading" @click="handleSyncTaskReportByDate">
+                    <span v-if="syncLoading" class="loading loading-spinner loading-xs"></span>
+                    Sync Task Report
+                </button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="showSyncModal = false">close</button>
+        </form>
+    </dialog>
     <Navigation title="Activity">
         <DataTable
             title="Activity Logs"
@@ -57,6 +84,7 @@
             @update:search="search = $event"
             @add="createTask"
             @export="openExportModal"
+            @sync-task-report="openSyncModal"
             @filter="onFilter"
             @sort="onSort"
             @selection-change="selectedRows = $event"
@@ -176,6 +204,15 @@ const showExportModal = ref(false);
 const exportStartDate = ref(moment().startOf('month').format('YYYY-MM-DD'));
 const exportEndDate = ref(moment().format('YYYY-MM-DD'));
 const exportLoading = ref(false);
+
+const showSyncModal = ref(false);
+const syncStartDate = ref(moment().startOf('month').format('YYYY-MM-DD'));
+const syncEndDate = ref(moment().format('YYYY-MM-DD'));
+const syncLoading = ref(false);
+
+function openSyncModal() {
+    showSyncModal.value = true;
+}
 
 const sortColumn = ref('');
 const sortDirection = ref<'asc' | 'desc'>('desc');
@@ -635,23 +672,55 @@ async function refresh() {
     await fetch();
 }
 
+async function handleSyncTaskReportByDate() {
+    const ok = await confirm({
+        title: "Sync ke Task Report",
+        message: `Yakin ingin melakukan sinkronisasi task report dari ${syncStartDate.value} sampai ${syncEndDate.value}?`,
+        confirmText: "Sync",
+        cancelText: "Batal"
+    });
+
+    if (!ok) return;
+
+    syncLoading.value = true;
+    try {
+        const res = await activity.syncTaskReport({
+            startDate: syncStartDate.value,
+            endDate: syncEndDate.value
+        });
+
+        if (res?.success) {
+            notify(res?.message || "Task berhasil disinkronkan!", "success");
+            showSyncModal.value = false;
+        } else {
+            notify(res?.message || "Gagal sinkronisasi task", "error");
+        }
+    } catch (e: any) {
+        notify(e.message || "Gagal sinkronisasi task", "error");
+    } finally {
+        syncLoading.value = false;
+    }
+}
+
 async function syncTaskReport(rows: any[]) {
     const ok = await confirm({
         title: "Sync Task",
-        message: `Are you sure want to sync task report this task? this action cannot be undone.`,
+        message: `Are you sure want to sync task report for ${rows.length} selected task(s)? this action cannot be undone.`,
         confirmText: "Sync",
         cancelText: "Cancel"
-    })
+    });
 
     if (!ok) return;
     const payload = {
         id: rows.map(row => row.id)
     };
 
-    console.log(JSON.stringify(payload));
-    await activity.syncTaskReport(payload);
-
-    notify("Task synced!", "success");
+    const res = await activity.syncTaskReport(payload);
+    if (res?.success) {
+        notify(res?.message || "Task synced!", "success");
+    } else {
+        notify(res?.message || "Failed to sync task", "error");
+    }
 }
 
 async function syncMsos(rows: any[]) {

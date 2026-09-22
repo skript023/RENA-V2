@@ -33,6 +33,14 @@
                 Export
             </button>
 
+            <button
+                class="btn btn-info btn-sm"
+                @click="$emit('sync-task-report')"
+            >
+                <i class="ph ph-cloud-arrow-up"></i>
+                Sync Task Report
+            </button>
+
         </slot>
 
         <button
@@ -457,6 +465,7 @@ const props = withDefaults(
 const emit = defineEmits<{
     (e: 'add'): void;
     (e: 'export'): void;
+    (e: 'sync-task-report'): void;
     (e: 'refresh'): void;
     (e: 'update:search', value: string): void;
 

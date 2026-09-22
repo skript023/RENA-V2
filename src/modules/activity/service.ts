@@ -136,7 +136,7 @@ export default class activity
             return error.response.data;
         }
     }
-    static async syncTaskReport(tasks: {id: string[]}): Promise<ServerResponse<TaskCategory[]>>
+    static async syncTaskReport(tasks: { id?: string[]; startDate?: string; endDate?: string }): Promise<ServerResponse<any>>
     {
         try 
         {
@@ -148,13 +148,13 @@ export default class activity
             });
 
             return response.data;
-        }
+        } 
         catch (error: any)
         {
-            return error.response.data;
+            return error.response?.data || { success: false, message: error.message };
         }
     }
-    static async syncMsos(tasks: {id: string[]}): Promise<ServerResponse<TaskCategory[]>>
+    static async syncMsos(tasks: { id?: string[]; startDate?: string; endDate?: string }): Promise<ServerResponse<any>>
     {
         try 
         {
@@ -166,10 +166,10 @@ export default class activity
             });
 
             return response.data;
-        }
+        } 
         catch (error: any)
         {
-            return error.response.data;
+            return error.response?.data || { success: false, message: error.message };
         }
     }
 }
