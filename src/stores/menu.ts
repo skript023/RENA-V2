@@ -20,6 +20,11 @@ export const useMenuStore = defineStore('menu', {
                 route: '/activity'
             },
             {
+                label: 'Attendance Settings',
+                icon: 'ph ph-map-pin',
+                route: '/attendance'
+            },
+            {
                 label: 'Job Configuration',
                 icon: 'ph ph-gear',
                 route: '/config'

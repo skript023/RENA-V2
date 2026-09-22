@@ -2,68 +2,76 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Login from '@/components/Login.vue'
 import Home from '@/modules/home/Home.vue'
-import Tiket from '@/modules/user/support/Tiket.vue'
-import System from '@/modules/system/System.vue'
-import Configs from '@/modules/configs/configs.vue'
-import Logs from '@/modules/log/Logs.vue'
-import NotFound from '@/components/NotFound.vue'
 import Activity from '@/modules/activity/activity.vue'
+import Attendance from '@/modules/attendance/Attendance.vue'
+import Configs from '@/modules/configs/configs.vue'
 import SchedulerManager from '@/modules/scheduler/SchedulerManager.vue'
+import Cookies from '@/modules/cookies/cookies.vue'
+import System from '@/modules/system/System.vue'
+import Logs from '@/modules/log/Logs.vue'
+import Tiket from '@/modules/user/support/Tiket.vue'
+import NotFound from '@/components/NotFound.vue'
 
 const routes = [
-  { 
-    path: '/', 
+  {
+    path: '/',
     name: "home",
     meta: { guestOnly: true },
-    component: Login 
+    component: Login
   },
-  { 
-    path: '/dashboard', 
+  {
+    path: '/dashboard',
     name: 'Dashboard',
     meta: { requiresAuth: true },
-    component: Home 
+    component: Home
   },
-  // { 
-  //   path: '/user/activity', 
-  //   name: 'Activity',
-  //   meta: { requiresAuth: true },
-  //   component: Activity 
-  // },
-  { 
-    path: '/ticket', 
-    name: 'Ticket',
-    meta: { requiresAuth: true },
-    component: Tiket 
-  },
-  { 
-    path: '/system', 
-    name: 'System',
-    meta: { requiresAuth: true },
-    component: System 
-  },
-  { 
-    path: '/logs', 
-    name: 'Logs',
-    meta: { requiresAuth: true },
-    component: Logs 
-  },
-  { 
-    path: '/activity', 
+  {
+    path: '/activity',
     name: 'Activity',
     meta: { requiresAuth: true },
-    component: Activity 
+    component: Activity
   },
-  { 
-    path: '/config', 
+  {
+    path: '/attendance',
+    name: 'Attendance',
+    meta: { requiresAuth: true },
+    component: Attendance
+  },
+  {
+    path: '/config',
     name: 'Job Configuration',
     meta: { requiresAuth: true },
     component: Configs
   },
-  { 
-    path: '/scheduler', 
+  {
+    path: '/scheduler',
     name: 'Scheduler Manager',
     meta: { requiresAuth: true },
     component: SchedulerManager
+  },
+  {
+    path: '/cookies',
+    name: 'Cookies Manager',
+    meta: { requiresAuth: true },
+    component: Cookies
+  },
+  {
+    path: '/system',
+    name: 'System',
+    meta: { requiresAuth: true },
+    component: System
+  },
+  {
+    path: '/logs',
+    name: 'Logs',
+    meta: { requiresAuth: true },
+    component: Logs
+  },
+  {
+    path: '/ticket',
+    name: 'Ticket',
+    meta: { requiresAuth: true },
+    component: Tiket
   },
   {
     path: "/:pathMatch(.*)*",
