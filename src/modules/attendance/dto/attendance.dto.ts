@@ -31,3 +31,30 @@ export interface AttendanceLogsResponse {
     limit: number;
     total_pages: number;
 }
+
+export interface BackfillSheetsPayload {
+    type?: 'all' | 'attendance' | 'weekly_report';
+    attendance_start?: string;
+    attendance_end?: string;
+    weekly_start?: string;
+    weekly_end?: string;
+    skip_holidays?: boolean;
+    skip_existing?: boolean;
+    exclude_dates?: string[];
+}
+
+export interface BackfillSheetsResult {
+    attendance?: {
+        processed_days: number;
+        added_days: number;
+        skipped_holidays: number;
+        skipped_existing: number;
+        months_affected: string[];
+    };
+    weekly_report?: {
+        processed_weeks: number;
+        added_weeks: number;
+        skipped_existing: number;
+        months_affected: string[];
+    };
+}

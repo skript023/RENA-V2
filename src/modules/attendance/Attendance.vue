@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import Navigation from '@/components/Navigation.vue'
 import LocationMapModal from './components/LocationMapModal.vue'
+import SheetsBackfillModal from './components/SheetsBackfillModal.vue'
 import { useNotification } from '@/composables/useNotification'
 import attendanceService from './service'
 import type { AttendanceSettings, AttendanceLog } from './dto/attendance.dto'
@@ -137,6 +138,7 @@ const filterStatus = ref<'' | 'SUCCESS' | 'FAILED'>('')
 const retryingId = ref<string | null>(null)
 const retryingAll = ref(false)
 const manualLoading = ref<string | null>(null)
+const isBackfillModalOpen = ref(false)
 
 // Detail modal message
 const selectedLogDetail = ref<AttendanceLog | null>(null)
@@ -244,7 +246,7 @@ const retryAllFailed = async () => {
     }
 }
 
-const triggerManual = async (action: 'hrmis_checkin' | 'hrmis_checkout' | 'jahra_checkin' | 'jahra_checkout') => {
+const triggerManual = async (action: 'hrmis_checkin' | 'hrmis_checkout' | 'jahra_checkin' | 'jahra_checkout' | 'sheets_daily' | 'sheets_weekly') => {
     manualLoading.value = action
     try {
         let res: any
@@ -252,6 +254,8 @@ const triggerManual = async (action: 'hrmis_checkin' | 'hrmis_checkout' | 'jahra
         else if (action === 'hrmis_checkout') res = await attendanceService.manualCheckoutHrmis()
         else if (action === 'jahra_checkin') res = await attendanceService.manualCheckinJahra()
         else if (action === 'jahra_checkout') res = await attendanceService.manualCheckoutJahra()
+        else if (action === 'sheets_daily') res = await attendanceService.syncSheetsDaily()
+        else if (action === 'sheets_weekly') res = await attendanceService.syncSheetsWeekly()
 
         if (res && res.success) {
             notify(res.message || `Presensi ${action} berhasil dieksekusi!`, 'success')
@@ -437,6 +441,48 @@ onMounted(() => {
                             <i v-else class="ph ph-door-open"></i>
                             Jahra Check-out
                         </button>
+                    </div>
+
+                    <div class="pt-3 border-t border-base-200 mt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[11px] font-bold text-base-content/70 flex items-center gap-1.5">
+                                <i class="ph ph-file-csv text-emerald-500"></i>
+                                Integrasi Google Sheets
+                            </span>
+                            <span class="badge badge-xs badge-success badge-outline text-[10px]">Sync & Backfill</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline btn-success flex items-center gap-1.5 text-xs"
+                                :disabled="manualLoading !== null"
+                                @click="triggerManual('sheets_daily')"
+                            >
+                                <span v-if="manualLoading === 'sheets_daily'" class="loading loading-spinner loading-xs"></span>
+                                <i v-else class="ph ph-cloud-arrow-up"></i>
+                                Sheets Daily Sync
+                            </button>
+
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-outline btn-accent flex items-center gap-1.5 text-xs"
+                                :disabled="manualLoading !== null"
+                                @click="triggerManual('sheets_weekly')"
+                            >
+                                <span v-if="manualLoading === 'sheets_weekly'" class="loading loading-spinner loading-xs"></span>
+                                <i v-else class="ph ph-notebook"></i>
+                                Sheets Weekly Sync
+                            </button>
+
+                            <button 
+                                type="button" 
+                                class="btn btn-sm btn-success text-white flex items-center gap-1.5 text-xs font-semibold shadow"
+                                @click="isBackfillModalOpen = true"
+                            >
+                                <i class="ph ph-sparkle text-sm"></i>
+                                Lengkapi Sheets (Backfill)
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -895,6 +941,12 @@ onMounted(() => {
             :latitude="mapModalState.latitude"
             :longitude="mapModalState.longitude"
             @apply="onApplyMapCoords"
+        />
+
+        <SheetsBackfillModal
+            :is-open="isBackfillModalOpen"
+            @close="isBackfillModalOpen = false"
+            @success="loadLogs(1)"
         />
 
         <!-- Modal Detail Log -->

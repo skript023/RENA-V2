@@ -1,5 +1,5 @@
 import { http, type ServerResponse } from "@/util/http";
-import type { AttendanceSettings, AttendanceLogsResponse } from "./dto/attendance.dto";
+import type { AttendanceSettings, AttendanceLogsResponse, BackfillSheetsPayload, BackfillSheetsResult } from "./dto/attendance.dto";
 
 export default class attendanceService {
     static async getSettings(): Promise<ServerResponse<AttendanceSettings>> {
@@ -44,6 +44,21 @@ export default class attendanceService {
 
     static async manualCheckoutJahra(): Promise<ServerResponse<string>> {
         const response = await http.get<ServerResponse<string>>("/attendance/jahra/checkout");
+        return response.data;
+    }
+
+    static async syncSheetsDaily(): Promise<ServerResponse<any>> {
+        const response = await http.post<ServerResponse<any>>("/attendance/sheets/daily");
+        return response.data;
+    }
+
+    static async syncSheetsWeekly(): Promise<ServerResponse<any>> {
+        const response = await http.post<ServerResponse<any>>("/attendance/sheets/weekly");
+        return response.data;
+    }
+
+    static async backfillSheets(payload: BackfillSheetsPayload): Promise<ServerResponse<BackfillSheetsResult>> {
+        const response = await http.post<ServerResponse<BackfillSheetsResult>>("/attendance/sheets/backfill", payload);
         return response.data;
     }
 }
