@@ -131,7 +131,7 @@ const logsPage = ref(1)
 const logsLimit = ref(10)
 const logsTotal = ref(0)
 const logsTotalPages = ref(1)
-const filterProvider = ref<'' | 'HRMIS' | 'JAHRA'>('')
+const filterProvider = ref<'' | 'HRMIS' | 'JAHRA' | 'GOOGLE_SHEETS'>('')
 const filterStatus = ref<'' | 'SUCCESS' | 'FAILED'>('')
 
 const retryingId = ref<string | null>(null)
@@ -148,7 +148,7 @@ const openDetailModal = (log: AttendanceLog) => {
 }
 
 const hasFailedLogs = computed(() => {
-    return logs.value.some(l => l.status === 'FAILED')
+    return logs.value.some(l => l.status === 'FAILED' && l.provider !== 'GOOGLE_SHEETS')
 })
 
 const loadSettings = async () => {
@@ -454,7 +454,7 @@ onMounted(() => {
                                 <div class="badge badge-sm badge-ghost font-mono">{{ logsTotal }} logs</div>
                             </div>
                             <p class="text-xs text-base-content/60 mt-0.5">
-                                Catatan riwayat presensi HRMIS & Jahra yang tersimpan di basis data beserta opsi retry.
+                                Catatan riwayat HRMIS, Jahra, dan Google Sheets yang tersimpan di basis data.
                             </p>
                         </div>
 
@@ -464,6 +464,7 @@ onMounted(() => {
                                 <option value="">Semua Provider</option>
                                 <option value="HRMIS">HRMIS</option>
                                 <option value="JAHRA">Jahra</option>
+                                <option value="GOOGLE_SHEETS">Google Sheets</option>
                             </select>
 
                             <!-- Filter Status -->
@@ -534,7 +535,7 @@ onMounted(() => {
                                     <td>
                                         <span 
                                             class="badge badge-xs font-semibold"
-                                            :class="item.provider === 'HRMIS' ? 'badge-info text-info-content' : 'badge-secondary text-secondary-content'"
+                                            :class="item.provider === 'HRMIS' ? 'badge-info text-info-content' : item.provider === 'GOOGLE_SHEETS' ? 'badge-warning text-warning-content' : 'badge-secondary text-secondary-content'"
                                         >
                                             {{ item.provider }}
                                         </span>
@@ -542,9 +543,9 @@ onMounted(() => {
                                     <td>
                                         <span 
                                             class="badge badge-xs font-semibold"
-                                            :class="item.type === 'CHECKIN' ? 'badge-success' : 'badge-warning'"
+                                            :class="item.type === 'CHECKIN' ? 'badge-success' : item.type === 'WEEKLY_REPORT' ? 'badge-primary' : 'badge-warning'"
                                         >
-                                            {{ item.type }}
+                                            {{ item.type === 'WEEKLY_REPORT' ? 'Weekly Report' : item.type }}
                                         </span>
                                     </td>
                                     <td>
@@ -577,7 +578,7 @@ onMounted(() => {
                                         <span v-else class="text-base-content/40 font-mono text-[11px]">0x</span>
                                     </td>
                                     <td class="text-center">
-                                        <button 
+                                        <button v-if="item.provider !== 'GOOGLE_SHEETS'"
                                             type="button" 
                                             class="btn btn-xs flex items-center gap-1 font-semibold"
                                             :class="item.status === 'FAILED' ? 'btn-error btn-outline' : 'btn-ghost'"
@@ -589,6 +590,7 @@ onMounted(() => {
                                             <i v-else class="ph ph-arrows-clockwise text-xs"></i>
                                             Retry
                                         </button>
+                                        <span v-else class="text-base-content/40">-</span>
                                     </td>
                                 </tr>
                             </tbody>

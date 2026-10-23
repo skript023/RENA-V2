@@ -13,8 +13,8 @@ export interface AttendanceSettings {
 export interface AttendanceLog {
     id: string;
     user_id: string;
-    provider: 'HRMIS' | 'JAHRA';
-    type: 'CHECKIN' | 'CHECKOUT';
+    provider: 'HRMIS' | 'JAHRA' | 'GOOGLE_SHEETS';
+    type: 'CHECKIN' | 'CHECKOUT' | 'WEEKLY_REPORT';
     status: 'SUCCESS' | 'FAILED';
     message: string;
     payload?: string;
